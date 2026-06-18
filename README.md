@@ -15,10 +15,17 @@ This project is designed for Upwork clients looking for:
 
 ## Run Locally
 
+Create the Python environment:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
 Open `index.html` directly for the static demo, or run the Python API server:
 
 ```bash
-python3 server.py
+.venv/bin/python server.py
 ```
 
 Then visit:
