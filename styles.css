@@ -235,7 +235,8 @@ h3 {
 .approval-item span,
 .event-log span,
 .blueprint-node span,
-.pipeline-card span {
+.pipeline-card span,
+.decision-detail span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 750;
@@ -419,6 +420,11 @@ h3 {
   line-height: 1.42;
 }
 
+.approval-item.selected {
+  border-color: rgba(22, 122, 74, 0.45);
+  background: linear-gradient(135deg, rgba(22, 122, 74, 0.08), #fbfcf8 54%);
+}
+
 .approval-actions {
   display: flex;
   gap: 8px;
@@ -443,6 +449,62 @@ h3 {
 .mini-button.reject {
   border-color: rgba(165, 53, 53, 0.3);
   color: var(--red);
+}
+
+.decision-panel {
+  background:
+    linear-gradient(135deg, rgba(36, 87, 197, 0.07), transparent 40%),
+    var(--surface);
+}
+
+.decision-detail {
+  margin-top: 16px;
+}
+
+.decision-detail strong {
+  display: block;
+  margin: 7px 0;
+}
+
+.decision-detail p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+.rationale-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.rationale-stat {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+  padding: 10px;
+}
+
+.rationale-stat span,
+.integration-list small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rationale-stat strong {
+  margin: 3px 0 0;
+}
+
+.evidence-list {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .blueprint {
@@ -530,6 +592,43 @@ h3 {
   line-height: 1.38;
 }
 
+.integration-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.integration-list div {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  column-gap: 9px;
+  row-gap: 2px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+  padding: 11px;
+}
+
+.integration-list small {
+  grid-column: 2;
+}
+
+.status-dot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-dot.healthy {
+  background: var(--green);
+}
+
+.status-dot.warning {
+  background: var(--amber);
+}
+
 .toast {
   position: fixed;
   right: 22px;
@@ -605,6 +704,7 @@ h3 {
 
   .status-grid,
   .pipeline-board,
+  .rationale-grid,
   .blueprint {
     grid-template-columns: 1fr;
   }

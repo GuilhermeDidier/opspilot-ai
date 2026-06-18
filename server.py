@@ -8,6 +8,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parent
+DATA_DIR = ROOT / "data"
+STATE_FILE = DATA_DIR / "opspilot_state.json"
 
 WORKFLOWS = {
     "revenue": {
@@ -123,16 +125,43 @@ STATE = {
             "type": "Revenue",
             "title": "Send enterprise lead reply",
             "body": "ACME Cloud scored 91/100. AI recommends a same-day consult and tailored discovery email.",
+            "confidence": 94,
+            "risk": "Low",
+            "timeSaved": 34,
+            "nextAction": "Send a tailored discovery email and create a same-day follow-up task.",
+            "evidence": [
+                "Budget signal found in form notes",
+                "Use case matches prior high-conversion projects",
+                "Prospect visited pricing page twice",
+            ],
         },
         {
             "type": "Support",
             "title": "Escalate billing risk",
             "body": "Ticket sentiment is negative and renewal date is within 14 days. Escalation suggested.",
+            "confidence": 89,
+            "risk": "High",
+            "timeSaved": 26,
+            "nextAction": "Notify the account owner and attach a suggested response for manager review.",
+            "evidence": [
+                "Negative sentiment detected",
+                "Renewal date inside 14 days",
+                "Competitor switching language present",
+            ],
         },
         {
             "type": "Documents",
             "title": "Approve invoice exception",
             "body": "Vendor invoice INV-2048 has a duplicate number with a different total.",
+            "confidence": 86,
+            "risk": "Medium",
+            "timeSaved": 18,
+            "nextAction": "Hold export and request finance review on the duplicate invoice.",
+            "evidence": [
+                "Invoice number already exists",
+                "Total differs from previous record",
+                "Vendor tax ID matches prior vendor",
+            ],
         },
         {
             "type": "Revenue",
@@ -173,6 +202,8 @@ STATE = {
     ],
 }
 
+DEFAULT_STATE = deepcopy(STATE)
+
 
 def now_label():
     return datetime.now().strftime("%H:%M")
@@ -181,10 +212,32 @@ def now_label():
 def add_event(title, body):
     STATE["events"].insert(0, [now_label(), title, body])
     STATE["events"] = STATE["events"][:12]
+    save_state()
 
 
 def snapshot():
     return {"workflows": deepcopy(WORKFLOWS), "state": deepcopy(STATE)}
+
+
+def load_state():
+    global STATE
+    if not STATE_FILE.exists():
+        return
+    try:
+        STATE = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        STATE = deepcopy(DEFAULT_STATE)
+
+
+def save_state():
+    DATA_DIR.mkdir(exist_ok=True)
+    STATE_FILE.write_text(json.dumps(STATE, indent=2), encoding="utf-8")
+
+
+def reset_state():
+    global STATE
+    STATE = deepcopy(DEFAULT_STATE)
+    save_state()
 
 
 class OpsPilotHandler(BaseHTTPRequestHandler):
@@ -193,6 +246,10 @@ class OpsPilotHandler(BaseHTTPRequestHandler):
 
         if path == "/api/state":
             self.send_json(snapshot())
+            return
+
+        if path == "/api/health":
+            self.send_json({"status": "ok", "storage": str(STATE_FILE.relative_to(ROOT))})
             return
 
         file_path = ROOT / "index.html" if path == "/" else ROOT / path.lstrip("/")
@@ -220,10 +277,20 @@ class OpsPilotHandler(BaseHTTPRequestHandler):
                     "type": WORKFLOW_TYPES.get(workflow_key, "Revenue"),
                     "title": workflow["cards"][2]["title"],
                     "body": f"{workflow['cards'][2]['body']} Confidence: {workflow['confidence']}%.",
+                    "confidence": workflow["confidence"],
+                    "risk": "High" if workflow_key == "support" else "Medium",
+                    "timeSaved": 22 if workflow_key == "documents" else 31,
+                    "nextAction": workflow["cards"][2]["body"],
+                    "evidence": [
+                        "Workflow context matched a known automation playbook",
+                        "Suggested action requires human approval before external sync",
+                        "Audit log will capture the reviewer decision",
+                    ],
                 },
             )
             STATE["hoursSaved"] += 4
             STATE["pipelineValue"] += 7200 if workflow_key == "revenue" else 1400
+            save_state()
             add_event("Simulation completed", f"{workflow['title']} produced one new review item.")
             self.send_json(snapshot())
             return
@@ -233,6 +300,7 @@ class OpsPilotHandler(BaseHTTPRequestHandler):
             del STATE["approvals"][:approved_count]
             STATE["hoursSaved"] += approved_count * 2
             STATE["pipelineValue"] += approved_count * 2600
+            save_state()
             add_event("Batch approval", f"{approved_count} AI-suggested actions approved with human oversight.")
             self.send_json(snapshot())
             return
@@ -247,6 +315,7 @@ class OpsPilotHandler(BaseHTTPRequestHandler):
                     STATE["hoursSaved"] += 2 if action == "approved" else 1
                     if item["type"] == "Revenue" and action == "approved":
                         STATE["pipelineValue"] += 4800
+                    save_state()
                     add_event(
                         "Action approved" if action == "approved" else "Action rejected",
                         f"{item['title']} was {action} by a human reviewer.",
@@ -264,6 +333,12 @@ class OpsPilotHandler(BaseHTTPRequestHandler):
 
         if path == "/api/audit/export":
             add_event("Audit exported", "Reviewer actions, AI rationale, and workflow metrics prepared for download.")
+            self.send_json(snapshot())
+            return
+
+        if path == "/api/reset":
+            reset_state()
+            add_event("Demo reset", "State restored to the default portfolio dataset.")
             self.send_json(snapshot())
             return
 
@@ -291,6 +366,7 @@ class OpsPilotHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    load_state()
     server = ThreadingHTTPServer(("127.0.0.1", 8000), OpsPilotHandler)
     print("OpsPilot AI running at http://127.0.0.1:8000")
     server.serve_forever()

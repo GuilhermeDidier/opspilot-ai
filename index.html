@@ -61,9 +61,9 @@
             <small>Human-in-the-loop</small>
           </article>
           <article class="metric-panel">
-            <span>Automation Health</span>
-            <strong>98.7%</strong>
-            <small>2 warnings monitored</small>
+            <span>Cost Avoided</span>
+            <strong id="costAvoided">$10,710</strong>
+            <small>At $85/hr ops cost</small>
           </article>
         </section>
 
@@ -126,6 +126,20 @@
               <div class="approval-list" id="approvalList"></div>
             </section>
 
+            <section class="panel decision-panel">
+              <div class="section-header">
+                <div>
+                  <span class="eyebrow">AI Rationale</span>
+                  <h2>Decision Packet</h2>
+                </div>
+              </div>
+              <div class="decision-detail" id="decisionDetail">
+                <span>Select an approval</span>
+                <strong>Review the AI reasoning before action</strong>
+                <p>Every automation recommendation includes confidence, evidence, risk level, and the exact next step before a human approves it.</p>
+              </div>
+            </section>
+
             <section class="panel">
               <div class="section-header">
                 <div>
@@ -134,6 +148,21 @@
                 </div>
               </div>
               <ol class="event-log" id="eventLog"></ol>
+            </section>
+
+            <section class="panel">
+              <div class="section-header">
+                <div>
+                  <span class="eyebrow">Connected Systems</span>
+                  <h2>Integration Health</h2>
+                </div>
+              </div>
+              <div class="integration-list">
+                <div><span class="status-dot healthy"></span><strong>HubSpot</strong><small>CRM sync ready</small></div>
+                <div><span class="status-dot healthy"></span><strong>Gmail</strong><small>Draft mode only</small></div>
+                <div><span class="status-dot warning"></span><strong>Zendesk</strong><small>Webhook pending</small></div>
+                <div><span class="status-dot healthy"></span><strong>Google Sheets</strong><small>Export queue active</small></div>
+              </div>
             </section>
           </aside>
         </section>

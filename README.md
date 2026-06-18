@@ -35,10 +35,31 @@ The current version is a polished static frontend prototype with realistic busin
 - Support ticket triage
 - Invoice and document review
 - Approval/rejection actions
+- Decision packets with confidence, risk, evidence, and next action
 - Workflow simulation
 - Audit event logging
 - Automation blueprint view
-- Python API endpoints for workflows, approvals, simulation, and audit events
+- Cost avoided metric based on estimated operational hours saved
+- Python API endpoints for workflows, approvals, simulation, reset, health, and audit events
+- Local JSON persistence for demo state
+
+## API Endpoints
+
+```text
+GET  /api/health
+GET  /api/state
+POST /api/simulate
+POST /api/approvals/{index}/approved
+POST /api/approvals/{index}/rejected
+POST /api/approvals/approve-all
+POST /api/workflows/{workflow}/optimize
+POST /api/audit/export
+POST /api/reset
+```
+
+## Portfolio Narrative
+
+OpsPilot AI is intentionally built around controlled automation. The product does not pretend that AI should blindly act inside a client's business. It shows the professional pattern clients actually need: AI prepares the recommendation, explains the evidence, estimates business impact, then waits for a human reviewer before syncing to external systems.
 
 ## Portfolio Pitch
 

@@ -109,16 +109,31 @@ let state = {
       type: "Revenue",
       title: "Send enterprise lead reply",
       body: "ACME Cloud scored 91/100. AI recommends a same-day consult and tailored discovery email.",
+      confidence: 94,
+      risk: "Low",
+      timeSaved: 34,
+      nextAction: "Send a tailored discovery email and create a same-day follow-up task.",
+      evidence: ["Budget signal found in form notes", "Use case matches prior high-conversion projects", "Prospect visited pricing page twice"],
     },
     {
       type: "Support",
       title: "Escalate billing risk",
       body: "Ticket sentiment is negative and renewal date is within 14 days. Escalation suggested.",
+      confidence: 89,
+      risk: "High",
+      timeSaved: 26,
+      nextAction: "Notify the account owner and attach a suggested response for manager review.",
+      evidence: ["Negative sentiment detected", "Renewal date inside 14 days", "Competitor switching language present"],
     },
     {
       type: "Documents",
       title: "Approve invoice exception",
       body: "Vendor invoice INV-2048 has a duplicate number with a different total.",
+      confidence: 86,
+      risk: "Medium",
+      timeSaved: 18,
+      nextAction: "Hold export and request finance review on the duplicate invoice.",
+      evidence: ["Invoice number already exists", "Total differs from previous record", "Vendor tax ID matches prior vendor"],
     },
     {
       type: "Revenue",
@@ -178,8 +193,12 @@ const elements = {
   approvalCount: document.querySelector("#approvalCount"),
   pipelineValue: document.querySelector("#pipelineValue"),
   hoursSaved: document.querySelector("#hoursSaved"),
+  costAvoided: document.querySelector("#costAvoided"),
+  decisionDetail: document.querySelector("#decisionDetail"),
   toast: document.querySelector("#toast"),
 };
+
+let selectedApprovalIndex = 0;
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -240,16 +259,18 @@ function renderWorkflow() {
 }
 
 function renderApprovals() {
+  selectedApprovalIndex = Math.min(selectedApprovalIndex, Math.max(state.approvals.length - 1, 0));
   elements.approvalCount.textContent = state.approvals.length;
   elements.approvalList.innerHTML = state.approvals
     .slice(0, 5)
     .map(
       (item, index) => `
-        <article class="approval-item">
+        <article class="approval-item ${index === selectedApprovalIndex ? "selected" : ""}">
           <span>${item.type}</span>
           <strong>${item.title}</strong>
           <p>${item.body}</p>
           <div class="approval-actions">
+            <button class="mini-button inspect" type="button" data-inspect="${index}">Inspect</button>
             <button class="mini-button approve" type="button" data-approve="${index}">Approve</button>
             <button class="mini-button reject" type="button" data-reject="${index}">Reject</button>
           </div>
@@ -257,6 +278,7 @@ function renderApprovals() {
       `,
     )
     .join("");
+  renderDecisionDetail();
 }
 
 function renderEvents() {
@@ -279,6 +301,36 @@ function renderEvents() {
 function renderMetrics() {
   elements.pipelineValue.textContent = formatCurrency(state.pipelineValue);
   elements.hoursSaved.textContent = state.hoursSaved;
+  elements.costAvoided.textContent = formatCurrency(state.hoursSaved * 85);
+}
+
+function renderDecisionDetail() {
+  const item = state.approvals[selectedApprovalIndex] || state.approvals[0];
+  if (!item) {
+    elements.decisionDetail.innerHTML = `
+      <span>Queue clear</span>
+      <strong>No pending recommendations</strong>
+      <p>All visible AI-suggested actions have been reviewed by a human operator.</p>
+    `;
+    return;
+  }
+
+  const evidence = item.evidence || ["Recommendation generated from workflow context", "Action is waiting for human approval"];
+
+  elements.decisionDetail.innerHTML = `
+    <span>${item.type}</span>
+    <strong>${item.title}</strong>
+    <p>${item.nextAction || item.body}</p>
+    <div class="rationale-grid">
+      <div class="rationale-stat"><span>Confidence</span><strong>${item.confidence || 82}%</strong></div>
+      <div class="rationale-stat"><span>Risk</span><strong>${item.risk || "Medium"}</strong></div>
+      <div class="rationale-stat"><span>Time saved</span><strong>${item.timeSaved || 20} min</strong></div>
+      <div class="rationale-stat"><span>Review mode</span><strong>Human</strong></div>
+    </div>
+    <ul class="evidence-list">
+      ${evidence.map((entry) => `<li>${entry}</li>`).join("")}
+    </ul>
+  `;
 }
 
 function applyServerState(snapshot) {
@@ -335,6 +387,7 @@ async function removeApproval(index, action) {
 
   const [item] = state.approvals.splice(index, 1);
   if (!item) return;
+  selectedApprovalIndex = 0;
 
   state.hoursSaved += action === "approved" ? 2 : 1;
   if (item.type === "Revenue" && action === "approved") {
@@ -363,6 +416,12 @@ document.querySelectorAll(".segment").forEach((button) => {
 elements.approvalList.addEventListener("click", (event) => {
   const approveIndex = event.target.dataset.approve;
   const rejectIndex = event.target.dataset.reject;
+  const inspectIndex = event.target.dataset.inspect;
+  if (inspectIndex !== undefined) {
+    selectedApprovalIndex = Number(inspectIndex);
+    renderApprovals();
+    return;
+  }
   if (approveIndex !== undefined) {
     removeApproval(Number(approveIndex), "approved");
   }
@@ -402,6 +461,15 @@ document.querySelector("#simulateButton").addEventListener("click", async () => 
     type: workflowTypes[state.activeWorkflow],
     title: `${workflow.cards[2].title}`,
     body: `${workflow.cards[2].body} Confidence: ${workflow.confidence}%.`,
+    confidence: workflow.confidence,
+    risk: state.activeWorkflow === "support" ? "High" : "Medium",
+    timeSaved: state.activeWorkflow === "documents" ? 22 : 31,
+    nextAction: workflow.cards[2].body,
+    evidence: [
+      "Workflow context matched a known automation playbook",
+      "Suggested action requires human approval before external sync",
+      "Audit log will capture the reviewer decision",
+    ],
   };
 
   state.approvals.unshift(nextApproval);
