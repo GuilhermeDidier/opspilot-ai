@@ -120,8 +120,15 @@ def health(_request):
 
 
 @api_view(["POST"])
+def export_audit(_request):
+    AuditEvent.objects.create(
+        title="Audit exported",
+        body="Reviewer actions, AI rationale, and workflow metrics prepared for download.",
+    )
+    return Response({"status": "exported"})
+
+
+@api_view(["POST"])
 def seed(_request):
     seed_demo_data()
     return Response({"status": "seeded"})
-
-# Create your views here.

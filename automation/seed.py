@@ -158,7 +158,8 @@ def seed_demo_data():
     for key, data in WORKFLOW_DATA.items():
         workflows[key] = Workflow.objects.create(key=key, **data)
 
-    for data in APPROVAL_DATA:
+    for approval_data in APPROVAL_DATA:
+        data = approval_data.copy()
         workflow_key = data.pop("workflow")
         Approval.objects.create(workflow=workflows[workflow_key], **data)
 

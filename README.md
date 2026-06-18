@@ -82,6 +82,7 @@ The Django REST API also exposes:
 
 ```text
 GET  /api/health/
+POST /api/seed/
 GET  /api/workflows/
 POST /api/workflows/{key}/simulate/
 POST /api/workflows/{key}/optimize/
@@ -90,6 +91,7 @@ POST /api/approvals/{id}/approve/
 POST /api/approvals/{id}/reject/
 POST /api/approvals/approve-all/
 GET  /api/audit-events/
+POST /api/audit/export/
 ```
 
 ## Portfolio Narrative

@@ -20,7 +20,7 @@ from django.urls import include, path
 from django.views.static import serve
 from rest_framework.routers import DefaultRouter
 
-from automation.views import ApprovalViewSet, AuditEventViewSet, WorkflowViewSet
+from automation.views import ApprovalViewSet, AuditEventViewSet, WorkflowViewSet, export_audit, health, seed
 from django.conf import settings
 
 
@@ -36,7 +36,9 @@ def frontend(_request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include(router.urls)),
-    path("api/health/", include("automation.urls")),
+    path("api/health/", health, name="health"),
+    path("api/audit/export/", export_audit, name="export-audit"),
+    path("api/seed/", seed, name="seed-demo-data"),
     path("styles.css", serve, {"document_root": settings.BASE_DIR, "path": "styles.css"}),
     path("app.js", serve, {"document_root": settings.BASE_DIR, "path": "app.js"}),
     path("", frontend),

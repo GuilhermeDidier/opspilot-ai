@@ -175,6 +175,7 @@ let state = {
 };
 
 const apiEnabled = window.location.protocol.startsWith("http");
+let djangoApiEnabled = false;
 const workflowTypes = {
   revenue: "Revenue",
   support: "Support",
@@ -342,6 +343,64 @@ function applyServerState(snapshot) {
   renderMetrics();
 }
 
+function formatEventTime(timestamp) {
+  if (!timestamp) return "--:--";
+  return new Date(timestamp).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function normalizeWorkflow(workflow) {
+  return {
+    title: workflow.title,
+    description: workflow.description,
+    confidence: workflow.confidence,
+    cards: workflow.cards,
+    blueprint: workflow.blueprint,
+  };
+}
+
+function normalizeApproval(approval) {
+  return {
+    id: approval.id,
+    type: approval.type,
+    title: approval.title,
+    body: approval.body,
+    confidence: approval.confidence,
+    risk: approval.risk,
+    timeSaved: approval.timeSaved || approval.time_saved,
+    nextAction: approval.nextAction || approval.next_action,
+    evidence: approval.evidence,
+  };
+}
+
+function normalizeEvent(event) {
+  return [formatEventTime(event.created_at), event.title, event.body];
+}
+
+function applyDjangoState({ workflowList, approvalList, eventList }) {
+  workflows = workflowList.reduce((accumulator, workflow) => {
+    accumulator[workflow.key] = normalizeWorkflow(workflow);
+    return accumulator;
+  }, {});
+
+  if (!workflows[state.activeWorkflow]) {
+    state.activeWorkflow = workflowList[0]?.key || "revenue";
+  }
+
+  state.approvals = approvalList.map(normalizeApproval);
+  state.events = eventList.map(normalizeEvent);
+  state.hoursSaved = 126 + approvalList.reduce((total, approval) => total + (approval.timeSaved || approval.time_saved || 0), 0);
+  state.pipelineValue = 184200 + approvalList.filter((approval) => approval.type === "Revenue").length * 7200;
+
+  renderWorkflow();
+  renderApprovals();
+  renderEvents();
+  renderMetrics();
+}
+
 async function apiPost(path, payload = {}) {
   if (!apiEnabled) return null;
 
@@ -356,6 +415,36 @@ async function apiPost(path, payload = {}) {
   }
 
   return response.json();
+}
+
+async function apiGet(path) {
+  if (!apiEnabled) return null;
+
+  const response = await fetch(path);
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function refreshDjangoState() {
+  let [workflowList, approvalList, eventList] = await Promise.all([
+    apiGet("/api/workflows/"),
+    apiGet("/api/approvals/?status=pending"),
+    apiGet("/api/audit-events/"),
+  ]);
+
+  if (workflowList.length === 0) {
+    await apiPost("/api/seed/");
+    [workflowList, approvalList, eventList] = await Promise.all([
+      apiGet("/api/workflows/"),
+      apiGet("/api/approvals/?status=pending"),
+      apiGet("/api/audit-events/"),
+    ]);
+  }
+
+  applyDjangoState({ workflowList, approvalList, eventList });
 }
 
 function showToast(message) {
@@ -378,6 +467,17 @@ function addEvent(title, body) {
 }
 
 async function removeApproval(index, action) {
+  if (djangoApiEnabled) {
+    const item = state.approvals[index];
+    if (!item?.id) return;
+
+    await apiPost(`/api/approvals/${item.id}/${action === "approved" ? "approve" : "reject"}/`);
+    selectedApprovalIndex = 0;
+    await refreshDjangoState();
+    showToast(`Action ${action}. Audit trail updated.`);
+    return;
+  }
+
   if (apiEnabled) {
     const snapshot = await apiPost(`/api/approvals/${index}/${action}`);
     applyServerState(snapshot);
@@ -431,6 +531,14 @@ elements.approvalList.addEventListener("click", (event) => {
 });
 
 document.querySelector("#approveAllButton").addEventListener("click", async () => {
+  if (djangoApiEnabled) {
+    await apiPost("/api/approvals/approve-all/");
+    selectedApprovalIndex = 0;
+    await refreshDjangoState();
+    showToast("Queued actions approved.");
+    return;
+  }
+
   if (apiEnabled) {
     const snapshot = await apiPost("/api/approvals/approve-all");
     applyServerState(snapshot);
@@ -449,6 +557,14 @@ document.querySelector("#approveAllButton").addEventListener("click", async () =
 });
 
 document.querySelector("#simulateButton").addEventListener("click", async () => {
+  if (djangoApiEnabled) {
+    await apiPost(`/api/workflows/${state.activeWorkflow}/simulate/`);
+    selectedApprovalIndex = 0;
+    await refreshDjangoState();
+    showToast("Simulation complete. One approval item added.");
+    return;
+  }
+
   if (apiEnabled) {
     const snapshot = await apiPost("/api/simulate", { workflow: state.activeWorkflow });
     applyServerState(snapshot);
@@ -483,6 +599,13 @@ document.querySelector("#simulateButton").addEventListener("click", async () => 
 });
 
 document.querySelector("#optimizeButton").addEventListener("click", async () => {
+  if (djangoApiEnabled) {
+    await apiPost(`/api/workflows/${state.activeWorkflow}/optimize/`);
+    await refreshDjangoState();
+    showToast("Workflow threshold optimized.");
+    return;
+  }
+
   if (apiEnabled) {
     const snapshot = await apiPost(`/api/workflows/${state.activeWorkflow}/optimize`);
     applyServerState(snapshot);
@@ -498,6 +621,13 @@ document.querySelector("#optimizeButton").addEventListener("click", async () => 
 });
 
 document.querySelector("#exportButton").addEventListener("click", async () => {
+  if (djangoApiEnabled) {
+    await apiPost("/api/audit/export/");
+    await refreshDjangoState();
+    showToast("Audit export prepared for the portfolio demo.");
+    return;
+  }
+
   if (apiEnabled) {
     const snapshot = await apiPost("/api/audit/export");
     applyServerState(snapshot);
@@ -511,6 +641,17 @@ document.querySelector("#exportButton").addEventListener("click", async () => {
 
 async function boot() {
   if (apiEnabled) {
+    try {
+      const health = await apiGet("/api/health/");
+      if (health.backend === "django") {
+        djangoApiEnabled = true;
+        await refreshDjangoState();
+        return;
+      }
+    } catch (error) {
+      console.warn("Django API unavailable, checking legacy API.", error);
+    }
+
     try {
       const response = await fetch("/api/state");
       if (response.ok) {
