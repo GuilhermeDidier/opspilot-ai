@@ -2,11 +2,11 @@ import json
 import os
 
 
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.5")
+DEFAULT_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-opus-4-8")
 
 
-def openai_enabled():
-    return bool(os.getenv("OPENAI_API_KEY"))
+def claude_enabled():
+    return bool(os.getenv("ANTHROPIC_API_KEY"))
 
 
 def fallback_recommendation(workflow, payload):
@@ -60,13 +60,45 @@ def build_fallback_draft(workflow, payload):
     )
 
 
+RECOMMENDATION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "body": {"type": "string"},
+        "confidence": {"type": "integer"},
+        "risk": {"type": "string", "enum": ["Low", "Medium", "High"]},
+        "time_saved": {"type": "integer"},
+        "next_action": {"type": "string"},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "draft": {"type": "string"},
+    },
+    "required": [
+        "title",
+        "body",
+        "confidence",
+        "risk",
+        "time_saved",
+        "next_action",
+        "evidence",
+        "draft",
+    ],
+    "additionalProperties": False,
+}
+
+SYSTEM_PROMPT = (
+    "You generate concise business automation recommendations for a human-in-the-loop "
+    "operations dashboard. Every action you suggest is reviewed and approved by a human "
+    "before it touches an external system. Be specific, ground the recommendation in the "
+    "provided workflow context, and keep the draft reply short and professional."
+)
+
+
 def generate_recommendation(workflow, payload):
-    if not openai_enabled():
+    if not claude_enabled():
         return fallback_recommendation(workflow, payload)
 
-    from openai import OpenAI
+    import anthropic
 
-    client = OpenAI()
     prompt = {
         "workflow": {
             "key": workflow.key,
@@ -74,35 +106,20 @@ def generate_recommendation(workflow, payload):
             "description": workflow.description,
         },
         "input": payload,
-        "required_json_schema": {
-            "title": "string",
-            "body": "string",
-            "confidence": "integer 0-100",
-            "risk": "Low | Medium | High",
-            "time_saved": "integer minutes",
-            "next_action": "string",
-            "evidence": ["string", "string", "string"],
-            "draft": "string",
-        },
     }
 
-    response = client.responses.create(
-        model=DEFAULT_MODEL,
-        input=[
-            {
-                "role": "system",
-                "content": (
-                    "You generate concise business automation recommendations for a human-in-the-loop operations dashboard. "
-                    "Return only valid JSON matching the requested schema."
-                ),
-            },
-            {"role": "user", "content": json.dumps(prompt)},
-        ],
-    )
-
     try:
-        data = json.loads(response.output_text)
-    except (json.JSONDecodeError, AttributeError):
+        client = anthropic.Anthropic()
+        response = client.messages.create(
+            model=DEFAULT_MODEL,
+            max_tokens=1024,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": json.dumps(prompt)}],
+            output_config={"format": {"type": "json_schema", "schema": RECOMMENDATION_SCHEMA}},
+        )
+        text = next(block.text for block in response.content if block.type == "text")
+        data = json.loads(text)
+    except (anthropic.APIError, json.JSONDecodeError, StopIteration, ValueError):
         data = fallback_recommendation(workflow, payload)
         data["provider"] = "fallback"
         return data
@@ -111,5 +128,5 @@ def generate_recommendation(workflow, payload):
     data["time_saved"] = max(1, int(data.get("time_saved", 20)))
     data["risk"] = data.get("risk") if data.get("risk") in {"Low", "Medium", "High"} else "Medium"
     data["evidence"] = data.get("evidence") or []
-    data["provider"] = "openai"
+    data["provider"] = "claude"
     return data

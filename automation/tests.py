@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -25,6 +27,7 @@ class AutomationApiTests(TestCase):
         self.assertEqual(Approval.objects.filter(status=Approval.STATUS_PENDING).count(), 4)
         self.assertTrue(AuditEvent.objects.filter(title="Simulation completed").exists())
 
+    @patch.dict("os.environ", {}, clear=True)
     def test_ai_recommend_creates_fallback_recommendation_without_api_key(self):
         response = self.client.post(
             "/api/workflows/revenue/ai-recommend/",

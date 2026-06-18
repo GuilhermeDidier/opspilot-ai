@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from automation.ai import fallback_recommendation, openai_enabled
+from automation.ai import claude_enabled, fallback_recommendation
 
 
 class DummyWorkflow:
@@ -12,9 +12,9 @@ class DummyWorkflow:
 
 
 class AiServiceTests(unittest.TestCase):
-    def test_openai_disabled_without_api_key(self):
+    def test_claude_disabled_without_api_key(self):
         with patch.dict("os.environ", {}, clear=True):
-            self.assertFalse(openai_enabled())
+            self.assertFalse(claude_enabled())
 
     def test_fallback_recommendation_returns_draft(self):
         result = fallback_recommendation(DummyWorkflow(), {"company": "ACME", "request": "enterprise pricing demo"})

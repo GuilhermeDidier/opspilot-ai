@@ -47,11 +47,11 @@ export DATABASE_URL=postgres://opspilot:opspilot@localhost:5432/opspilot_ai
 .venv/bin/python manage.py seed_demo
 ```
 
-Enable OpenAI-powered recommendations by setting:
+Enable Claude-powered recommendations by setting:
 
 ```bash
-export OPENAI_API_KEY=your_api_key
-export OPENAI_MODEL=gpt-5.5
+export ANTHROPIC_API_KEY=your_api_key
+export ANTHROPIC_MODEL=claude-opus-4-8
 ```
 
 If no API key is configured, OpsPilot AI uses a deterministic fallback so the demo remains fully usable.
@@ -72,7 +72,7 @@ The current version is a Django-backed dashboard with realistic business flows:
 - Django REST API endpoints for workflows, approvals, simulation, health, and audit events
 - Database-backed workflows, approvals, and audit logs
 - SQLite by default with PostgreSQL support through `DATABASE_URL`
-- OpenAI-powered recommendation and draft endpoint with deterministic fallback
+- Claude-powered recommendation and draft endpoint with deterministic fallback
 
 ## API Endpoints
 
@@ -114,4 +114,4 @@ A production-style AI operations dashboard that scores leads, triages support ti
 - Add a Django REST API
 - Store workflows, approvals, and logs in a database
 - Add PostgreSQL configuration through `DATABASE_URL`
-- Add OpenAI-powered classification and drafting
+- Add Claude-powered classification and drafting

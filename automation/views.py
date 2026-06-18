@@ -4,7 +4,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
-from .ai import generate_recommendation, openai_enabled
+from .ai import claude_enabled, generate_recommendation
 from .models import Approval, AuditEvent, Workflow
 from .serializers import ApprovalSerializer, AuditEventSerializer, WorkflowSerializer
 from .seed import seed_demo_data
@@ -142,7 +142,7 @@ class AuditEventViewSet(viewsets.ReadOnlyModelViewSet):
 
 @api_view(["GET"])
 def health(_request):
-    return Response({"status": "ok", "backend": "django", "openai": openai_enabled()})
+    return Response({"status": "ok", "backend": "django", "claude": claude_enabled()})
 
 
 @api_view(["POST"])
