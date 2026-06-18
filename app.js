@@ -183,6 +183,9 @@ const workflowTypes = {
 };
 
 const elements = {
+  pageEyebrow: document.querySelector("#pageEyebrow"),
+  pageTitle: document.querySelector("#pageTitle"),
+  commandLayout: document.querySelector("#commandLayout"),
   workflowTitle: document.querySelector("#workflowTitle"),
   workflowDescription: document.querySelector("#workflowDescription"),
   confidenceValue: document.querySelector("#confidenceValue"),
@@ -200,6 +203,30 @@ const elements = {
 };
 
 let selectedApprovalIndex = 0;
+let activeView = "command";
+
+const viewConfig = {
+  command: {
+    eyebrow: "Production Demo",
+    title: "Business Automation Command Center",
+  },
+  approvals: {
+    eyebrow: "Human Review",
+    title: "Approval Queue",
+  },
+  workflows: {
+    eyebrow: "Workflow Intelligence",
+    title: "Workflow Builder",
+  },
+  audit: {
+    eyebrow: "Audit Trail",
+    title: "Agent Activity Log",
+  },
+  integrations: {
+    eyebrow: "Connected Systems",
+    title: "Integration Health",
+  },
+};
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -220,6 +247,23 @@ function tagClass(tag) {
     return "violet";
   }
   return "amber";
+}
+
+function setView(view) {
+  activeView = view;
+  const config = viewConfig[view] || viewConfig.command;
+
+  elements.pageEyebrow.textContent = config.eyebrow;
+  elements.pageTitle.textContent = config.title;
+  elements.commandLayout.classList.toggle("focus-view", view !== "command");
+
+  document.querySelectorAll("[data-panel]").forEach((panel) => {
+    panel.hidden = !panel.dataset.panel.split(" ").includes(view);
+  });
+
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === view);
+  });
 }
 
 function renderWorkflow() {
@@ -513,6 +557,12 @@ document.querySelectorAll(".segment").forEach((button) => {
   });
 });
 
+document.querySelectorAll(".nav-item").forEach((button) => {
+  button.addEventListener("click", () => {
+    setView(button.dataset.view);
+  });
+});
+
 elements.approvalList.addEventListener("click", (event) => {
   const approveIndex = event.target.dataset.approve;
   const rejectIndex = event.target.dataset.reject;
@@ -670,3 +720,4 @@ async function boot() {
 }
 
 boot();
+setView(activeView);

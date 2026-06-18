@@ -254,6 +254,15 @@ h3 {
   gap: 14px;
 }
 
+.command-layout.focus-view {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.command-layout.focus-view .main-column,
+.command-layout.focus-view .side-column {
+  display: contents;
+}
+
 .main-column,
 .side-column {
   display: grid;
@@ -264,6 +273,10 @@ h3 {
 .panel {
   padding: 18px;
   overflow: hidden;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .segmented-control {
