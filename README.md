@@ -34,6 +34,20 @@ Then visit:
 http://127.0.0.1:8000
 ```
 
+Run the Django REST API:
+
+```bash
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py seed_demo
+.venv/bin/python manage.py runserver 127.0.0.1:8001
+```
+
+Django endpoints are available under:
+
+```text
+http://127.0.0.1:8001/api/
+```
+
 ## Demo Scope
 
 The current version is a polished static frontend prototype with realistic business flows:
@@ -62,6 +76,20 @@ POST /api/approvals/approve-all
 POST /api/workflows/{workflow}/optimize
 POST /api/audit/export
 POST /api/reset
+```
+
+The Django REST API also exposes:
+
+```text
+GET  /api/health/
+GET  /api/workflows/
+POST /api/workflows/{key}/simulate/
+POST /api/workflows/{key}/optimize/
+GET  /api/approvals/?status=pending
+POST /api/approvals/{id}/approve/
+POST /api/approvals/{id}/reject/
+POST /api/approvals/approve-all/
+GET  /api/audit-events/
 ```
 
 ## Portfolio Narrative
