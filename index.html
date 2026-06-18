@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpsPilot AI - Business Automation Command Center</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">OP</div>
+          <div>
+            <strong>OpsPilot AI</strong>
+            <span>Automation Command</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" type="button">Command Center</button>
+          <button class="nav-item" type="button">Approvals</button>
+          <button class="nav-item" type="button">Workflows</button>
+          <button class="nav-item" type="button">Audit Trail</button>
+          <button class="nav-item" type="button">Integrations</button>
+        </nav>
+
+        <div class="sidebar-panel">
+          <span class="eyebrow">Active Client</span>
+          <strong>Northstar SaaS</strong>
+          <p>Revenue, support, and back office workflows under human review.</p>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <span class="eyebrow">Production Demo</span>
+            <h1>Business Automation Command Center</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-button" id="exportButton" type="button">Export Audit</button>
+            <button class="primary-button" id="simulateButton" type="button">Run Simulation</button>
+          </div>
+        </header>
+
+        <section class="status-grid" aria-label="Business status">
+          <article class="metric-panel">
+            <span>Pipeline Value</span>
+            <strong id="pipelineValue">$184,200</strong>
+            <small>+18.4% this week</small>
+          </article>
+          <article class="metric-panel">
+            <span>Hours Saved</span>
+            <strong id="hoursSaved">126</strong>
+            <small>Across 3 workflows</small>
+          </article>
+          <article class="metric-panel">
+            <span>Pending Approval</span>
+            <strong id="approvalCount">9</strong>
+            <small>Human-in-the-loop</small>
+          </article>
+          <article class="metric-panel">
+            <span>Automation Health</span>
+            <strong>98.7%</strong>
+            <small>2 warnings monitored</small>
+          </article>
+        </section>
+
+        <section class="command-layout">
+          <div class="main-column">
+            <section class="panel">
+              <div class="section-header">
+                <div>
+                  <span class="eyebrow">Workflow Intelligence</span>
+                  <h2>Live Operations</h2>
+                </div>
+                <div class="segmented-control" role="tablist" aria-label="Workflow view">
+                  <button class="segment active" type="button" data-workflow="revenue">Revenue</button>
+                  <button class="segment" type="button" data-workflow="support">Support</button>
+                  <button class="segment" type="button" data-workflow="documents">Documents</button>
+                </div>
+              </div>
+
+              <div class="workflow-hero">
+                <div>
+                  <h3 id="workflowTitle">Lead & Sales Automation</h3>
+                  <p id="workflowDescription">
+                    Scores inbound leads, drafts a personalized reply, schedules a follow-up, and waits for manager approval before sending.
+                  </p>
+                </div>
+                <div class="confidence-block">
+                  <span>AI confidence</span>
+                  <strong id="confidenceValue">94%</strong>
+                  <div class="bar" aria-hidden="true">
+                    <span id="confidenceBar" style="width: 94%"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-board" id="pipelineBoard" aria-label="Automation pipeline"></div>
+            </section>
+
+            <section class="panel">
+              <div class="section-header">
+                <div>
+                  <span class="eyebrow">Workflow Builder</span>
+                  <h2>Automation Blueprint</h2>
+                </div>
+                <button class="ghost-button compact" id="optimizeButton" type="button">Optimize</button>
+              </div>
+
+              <div class="blueprint" id="blueprint"></div>
+            </section>
+          </div>
+
+          <aside class="side-column">
+            <section class="panel">
+              <div class="section-header">
+                <div>
+                  <span class="eyebrow">Human Review</span>
+                  <h2>Approval Queue</h2>
+                </div>
+                <button class="ghost-button compact" id="approveAllButton" type="button">Approve All</button>
+              </div>
+              <div class="approval-list" id="approvalList"></div>
+            </section>
+
+            <section class="panel">
+              <div class="section-header">
+                <div>
+                  <span class="eyebrow">Audit Trail</span>
+                  <h2>Agent Log</h2>
+                </div>
+              </div>
+              <ol class="event-log" id="eventLog"></ol>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
