@@ -48,6 +48,14 @@ Django endpoints are available under:
 http://127.0.0.1:8001/api/
 ```
 
+Use PostgreSQL by setting `DATABASE_URL` before running migrations:
+
+```bash
+export DATABASE_URL=postgres://opspilot:opspilot@localhost:5432/opspilot_ai
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py seed_demo
+```
+
 ## Demo Scope
 
 The current version is a polished static frontend prototype with realistic business flows:
@@ -61,8 +69,9 @@ The current version is a polished static frontend prototype with realistic busin
 - Audit event logging
 - Automation blueprint view
 - Cost avoided metric based on estimated operational hours saved
-- Python API endpoints for workflows, approvals, simulation, reset, health, and audit events
-- Local JSON persistence for demo state
+- Django REST API endpoints for workflows, approvals, simulation, health, and audit events
+- Database-backed workflows, approvals, and audit logs
+- SQLite by default with PostgreSQL support through `DATABASE_URL`
 
 ## API Endpoints
 
@@ -106,9 +115,13 @@ A production-style AI operations dashboard that scores leads, triages support ti
 
 ## Next Build Steps
 
-- Add a Django REST API
-- Store workflows, approvals, and logs in PostgreSQL
 - Add OpenAI-powered classification and drafting
 - Add Celery jobs for background automation
 - Add integrations for Gmail, Slack, HubSpot, Google Sheets, and Zendesk
 - Add authenticated client workspaces
+
+## Completed Build Steps
+
+- Add a Django REST API
+- Store workflows, approvals, and logs in a database
+- Add PostgreSQL configuration through `DATABASE_URL`
