@@ -115,6 +115,8 @@ APPROVAL_DATA = [
             "Use case matches prior high-conversion projects",
             "Prospect visited pricing page twice",
         ],
+        "draft": "Hi ACME Cloud, thanks for the details. I would start by mapping the onboarding workflow, then build a controlled AI automation with approval gates before CRM handoff.",
+        "provider": "seed",
     },
     {
         "workflow": "support",
@@ -130,6 +132,8 @@ APPROVAL_DATA = [
             "Renewal date inside 14 days",
             "Competitor switching language present",
         ],
+        "draft": "Hi, I understand this billing issue is urgent. I am escalating it with your account context so we can resolve the renewal risk quickly.",
+        "provider": "seed",
     },
     {
         "workflow": "documents",
@@ -145,6 +149,8 @@ APPROVAL_DATA = [
             "Total differs from previous record",
             "Vendor tax ID matches prior vendor",
         ],
+        "draft": "This invoice should remain on hold until finance reviews the duplicate number and mismatched total.",
+        "provider": "seed",
     },
 ]
 

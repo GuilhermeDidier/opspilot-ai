@@ -114,6 +114,8 @@ let state = {
       timeSaved: 34,
       nextAction: "Send a tailored discovery email and create a same-day follow-up task.",
       evidence: ["Budget signal found in form notes", "Use case matches prior high-conversion projects", "Prospect visited pricing page twice"],
+      draft: "Hi ACME Cloud, thanks for the details. I would start by mapping the onboarding workflow, then build a controlled AI automation with approval gates before CRM handoff.",
+      provider: "seed",
     },
     {
       type: "Support",
@@ -124,6 +126,8 @@ let state = {
       timeSaved: 26,
       nextAction: "Notify the account owner and attach a suggested response for manager review.",
       evidence: ["Negative sentiment detected", "Renewal date inside 14 days", "Competitor switching language present"],
+      draft: "Hi, I understand this billing issue is urgent. I am escalating it with your account context so we can resolve the renewal risk quickly.",
+      provider: "seed",
     },
     {
       type: "Documents",
@@ -134,6 +138,8 @@ let state = {
       timeSaved: 18,
       nextAction: "Hold export and request finance review on the duplicate invoice.",
       evidence: ["Invoice number already exists", "Total differs from previous record", "Vendor tax ID matches prior vendor"],
+      draft: "This invoice should remain on hold until finance reviews the duplicate number and mismatched total.",
+      provider: "seed",
     },
     {
       type: "Revenue",
@@ -375,6 +381,11 @@ function renderDecisionDetail() {
     <ul class="evidence-list">
       ${evidence.map((entry) => `<li>${entry}</li>`).join("")}
     </ul>
+    ${
+      item.draft
+        ? `<div class="draft-box"><span>${item.provider || "system"} draft</span><p>${item.draft}</p></div>`
+        : ""
+    }
   `;
 }
 
@@ -417,6 +428,8 @@ function normalizeApproval(approval) {
     timeSaved: approval.timeSaved || approval.time_saved,
     nextAction: approval.nextAction || approval.next_action,
     evidence: approval.evidence,
+    draft: approval.draft,
+    provider: approval.provider,
   };
 }
 
@@ -608,10 +621,13 @@ document.querySelector("#approveAllButton").addEventListener("click", async () =
 
 document.querySelector("#simulateButton").addEventListener("click", async () => {
   if (djangoApiEnabled) {
-    await apiPost(`/api/workflows/${state.activeWorkflow}/simulate/`);
+    await apiPost(`/api/workflows/${state.activeWorkflow}/ai-recommend/`, {
+      company: "Northstar SaaS",
+      request: "Need an AI automation recommendation with draft response, risk score, and human approval.",
+    });
     selectedApprovalIndex = 0;
     await refreshDjangoState();
-    showToast("Simulation complete. One approval item added.");
+    showToast("AI recommendation generated. One approval item added.");
     return;
   }
 

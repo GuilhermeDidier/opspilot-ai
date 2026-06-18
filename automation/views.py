@@ -4,6 +4,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
+from .ai import generate_recommendation, openai_enabled
 from .models import Approval, AuditEvent, Workflow
 from .serializers import ApprovalSerializer, AuditEventSerializer, WorkflowSerializer
 from .seed import seed_demo_data
@@ -56,6 +57,31 @@ class WorkflowViewSet(viewsets.ModelViewSet):
             approval=approval,
             title="Simulation completed",
             body=f"{workflow.title} produced one new review item.",
+        )
+        return Response(ApprovalSerializer(approval).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="ai-recommend")
+    def ai_recommend(self, request, key=None):
+        workflow = self.get_object()
+        recommendation = generate_recommendation(workflow, request.data)
+        approval = Approval.objects.create(
+            workflow=workflow,
+            type=WORKFLOW_TYPES.get(workflow.key, "Revenue"),
+            title=recommendation["title"],
+            body=recommendation["body"],
+            confidence=recommendation["confidence"],
+            risk=recommendation["risk"],
+            time_saved=recommendation["time_saved"],
+            next_action=recommendation["next_action"],
+            evidence=recommendation["evidence"],
+            draft=recommendation.get("draft", ""),
+            provider=recommendation["provider"],
+        )
+        AuditEvent.objects.create(
+            workflow=workflow,
+            approval=approval,
+            title="AI recommendation generated",
+            body=f"{workflow.title} generated a {recommendation['provider']} recommendation for review.",
         )
         return Response(ApprovalSerializer(approval).data, status=status.HTTP_201_CREATED)
 
@@ -116,7 +142,7 @@ class AuditEventViewSet(viewsets.ReadOnlyModelViewSet):
 
 @api_view(["GET"])
 def health(_request):
-    return Response({"status": "ok", "backend": "django"})
+    return Response({"status": "ok", "backend": "django", "openai": openai_enabled()})
 
 
 @api_view(["POST"])

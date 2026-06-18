@@ -44,6 +44,8 @@ class Approval(models.Model):
     time_saved = models.PositiveIntegerField(default=20)
     next_action = models.TextField(blank=True)
     evidence = models.JSONField(default=list)
+    draft = models.TextField(blank=True)
+    provider = models.CharField(max_length=40, default="system")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)

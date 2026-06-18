@@ -520,6 +520,18 @@ h3 {
   line-height: 1.4;
 }
 
+.draft-box {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+  padding: 11px;
+}
+
+.draft-box p {
+  margin: 6px 0 0;
+}
+
 .blueprint {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

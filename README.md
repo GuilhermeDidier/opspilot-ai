@@ -56,6 +56,15 @@ export DATABASE_URL=postgres://opspilot:opspilot@localhost:5432/opspilot_ai
 .venv/bin/python manage.py seed_demo
 ```
 
+Enable OpenAI-powered recommendations by setting:
+
+```bash
+export OPENAI_API_KEY=your_api_key
+export OPENAI_MODEL=gpt-5.5
+```
+
+If no API key is configured, OpsPilot AI uses a deterministic fallback so the demo remains fully usable.
+
 ## Demo Scope
 
 The current version is a polished static frontend prototype with realistic business flows:
@@ -72,6 +81,7 @@ The current version is a polished static frontend prototype with realistic busin
 - Django REST API endpoints for workflows, approvals, simulation, health, and audit events
 - Database-backed workflows, approvals, and audit logs
 - SQLite by default with PostgreSQL support through `DATABASE_URL`
+- OpenAI-powered recommendation and draft endpoint with deterministic fallback
 
 ## API Endpoints
 
@@ -93,6 +103,7 @@ The Django REST API also exposes:
 GET  /api/health/
 POST /api/seed/
 GET  /api/workflows/
+POST /api/workflows/{key}/ai-recommend/
 POST /api/workflows/{key}/simulate/
 POST /api/workflows/{key}/optimize/
 GET  /api/approvals/?status=pending
@@ -115,7 +126,6 @@ A production-style AI operations dashboard that scores leads, triages support ti
 
 ## Next Build Steps
 
-- Add OpenAI-powered classification and drafting
 - Add Celery jobs for background automation
 - Add integrations for Gmail, Slack, HubSpot, Google Sheets, and Zendesk
 - Add authenticated client workspaces
@@ -125,3 +135,4 @@ A production-style AI operations dashboard that scores leads, triages support ti
 - Add a Django REST API
 - Store workflows, approvals, and logs in a database
 - Add PostgreSQL configuration through `DATABASE_URL`
+- Add OpenAI-powered classification and drafting

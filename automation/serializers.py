@@ -43,6 +43,8 @@ class ApprovalSerializer(serializers.ModelSerializer):
             "next_action",
             "nextAction",
             "evidence",
+            "draft",
+            "provider",
             "status",
             "created_at",
             "reviewed_at",

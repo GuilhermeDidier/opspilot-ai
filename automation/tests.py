@@ -25,6 +25,18 @@ class AutomationApiTests(TestCase):
         self.assertEqual(Approval.objects.filter(status=Approval.STATUS_PENDING).count(), 4)
         self.assertTrue(AuditEvent.objects.filter(title="Simulation completed").exists())
 
+    def test_ai_recommend_creates_fallback_recommendation_without_api_key(self):
+        response = self.client.post(
+            "/api/workflows/revenue/ai-recommend/",
+            {"company": "ACME Cloud", "request": "Need enterprise pricing automation"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["provider"], "fallback")
+        self.assertIn("draft", response.json())
+        self.assertTrue(AuditEvent.objects.filter(title="AI recommendation generated").exists())
+
     def test_approve_marks_approval_reviewed(self):
         approval = Approval.objects.first()
 
@@ -42,5 +54,3 @@ class AutomationApiTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Workflow.objects.count(), 3)
-
-# Create your tests here.
