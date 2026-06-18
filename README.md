@@ -22,19 +22,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Open `index.html` directly for the static demo, or run the Python API server:
-
-```bash
-.venv/bin/python server.py
-```
-
-Then visit:
-
-```text
-http://127.0.0.1:8000
-```
-
-Run the Django REST API:
+Run the Django app (it serves both the REST API and the dashboard):
 
 ```bash
 .venv/bin/python manage.py migrate
@@ -42,11 +30,14 @@ Run the Django REST API:
 .venv/bin/python manage.py runserver 127.0.0.1:8001
 ```
 
-Django endpoints are available under:
+Then visit:
 
 ```text
-http://127.0.0.1:8001/api/
+http://127.0.0.1:8001/
 ```
+
+The API is available under `http://127.0.0.1:8001/api/`. You can also open
+`index.html` directly for a fully client-side demo with no backend.
 
 Use PostgreSQL by setting `DATABASE_URL` before running migrations:
 
@@ -67,7 +58,7 @@ If no API key is configured, OpsPilot AI uses a deterministic fallback so the de
 
 ## Demo Scope
 
-The current version is a polished static frontend prototype with realistic business flows:
+The current version is a Django-backed dashboard with realistic business flows:
 
 - Lead and sales automation
 - Support ticket triage
@@ -85,19 +76,7 @@ The current version is a polished static frontend prototype with realistic busin
 
 ## API Endpoints
 
-```text
-GET  /api/health
-GET  /api/state
-POST /api/simulate
-POST /api/approvals/{index}/approved
-POST /api/approvals/{index}/rejected
-POST /api/approvals/approve-all
-POST /api/workflows/{workflow}/optimize
-POST /api/audit/export
-POST /api/reset
-```
-
-The Django REST API also exposes:
+The Django REST API exposes:
 
 ```text
 GET  /api/health/

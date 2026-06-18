@@ -389,15 +389,6 @@ function renderDecisionDetail() {
   `;
 }
 
-function applyServerState(snapshot) {
-  workflows = snapshot.workflows;
-  state = snapshot.state;
-  renderWorkflow();
-  renderApprovals();
-  renderEvents();
-  renderMetrics();
-}
-
 function formatEventTime(timestamp) {
   if (!timestamp) return "--:--";
   return new Date(timestamp).toLocaleTimeString("en-US", {
@@ -535,13 +526,6 @@ async function removeApproval(index, action) {
     return;
   }
 
-  if (apiEnabled) {
-    const snapshot = await apiPost(`/api/approvals/${index}/${action}`);
-    applyServerState(snapshot);
-    showToast(`Action ${action}. Audit trail updated.`);
-    return;
-  }
-
   const [item] = state.approvals.splice(index, 1);
   if (!item) return;
   selectedApprovalIndex = 0;
@@ -602,13 +586,6 @@ document.querySelector("#approveAllButton").addEventListener("click", async () =
     return;
   }
 
-  if (apiEnabled) {
-    const snapshot = await apiPost("/api/approvals/approve-all");
-    applyServerState(snapshot);
-    showToast("Queued actions approved.");
-    return;
-  }
-
   const approvedCount = Math.min(state.approvals.length, 5);
   state.approvals.splice(0, approvedCount);
   state.hoursSaved += approvedCount * 2;
@@ -628,13 +605,6 @@ document.querySelector("#simulateButton").addEventListener("click", async () => 
     selectedApprovalIndex = 0;
     await refreshDjangoState();
     showToast("AI recommendation generated. One approval item added.");
-    return;
-  }
-
-  if (apiEnabled) {
-    const snapshot = await apiPost("/api/simulate", { workflow: state.activeWorkflow });
-    applyServerState(snapshot);
-    showToast("Simulation complete. One approval item added.");
     return;
   }
 
@@ -672,13 +642,6 @@ document.querySelector("#optimizeButton").addEventListener("click", async () => 
     return;
   }
 
-  if (apiEnabled) {
-    const snapshot = await apiPost(`/api/workflows/${state.activeWorkflow}/optimize`);
-    applyServerState(snapshot);
-    showToast("Workflow threshold optimized.");
-    return;
-  }
-
   const workflow = workflows[state.activeWorkflow];
   workflow.confidence = Math.min(workflow.confidence + 2, 98);
   renderWorkflow();
@@ -690,13 +653,6 @@ document.querySelector("#exportButton").addEventListener("click", async () => {
   if (djangoApiEnabled) {
     await apiPost("/api/audit/export/");
     await refreshDjangoState();
-    showToast("Audit export prepared for the portfolio demo.");
-    return;
-  }
-
-  if (apiEnabled) {
-    const snapshot = await apiPost("/api/audit/export");
-    applyServerState(snapshot);
     showToast("Audit export prepared for the portfolio demo.");
     return;
   }
@@ -715,17 +671,7 @@ async function boot() {
         return;
       }
     } catch (error) {
-      console.warn("Django API unavailable, checking legacy API.", error);
-    }
-
-    try {
-      const response = await fetch("/api/state");
-      if (response.ok) {
-        applyServerState(await response.json());
-        return;
-      }
-    } catch (error) {
-      console.warn("Falling back to local demo state.", error);
+      console.warn("Django API unavailable, falling back to local demo state.", error);
     }
   }
 
