@@ -1,0 +1,26 @@
+# Render blueprint: one Docker web service (Django API + built React SPA) plus
+# a managed PostgreSQL database. Set ANTHROPIC_API_KEY in the dashboard.
+databases:
+  - name: opspilot-db
+    plan: free
+
+services:
+  - type: web
+    name: opspilot-ai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health/
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: opspilot-db
+          property: connectionString
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-4-8

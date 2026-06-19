@@ -81,6 +81,21 @@ export ANTHROPIC_MODEL=claude-opus-4-8
 
 If no API key is configured, OpsPilot AI uses a deterministic fallback so the demo remains fully usable.
 
+## Deploy (Render)
+
+The repo ships a Render blueprint (`render.yaml`) and a multi-stage `Dockerfile`
+that builds the React bundle and serves it from Django with gunicorn + WhiteNoise:
+
+1. Push to GitHub and create a new **Blueprint** on Render pointing at the repo.
+2. Render provisions the web service and a managed PostgreSQL database, and
+   wires `DATABASE_URL` and a generated `SECRET_KEY` automatically.
+3. Set `ANTHROPIC_API_KEY` in the service environment to enable live Claude
+   recommendations (the deterministic fallback runs without it).
+
+On boot the container migrates, collects static, seeds an empty database, then
+serves on `$PORT`. Production reads `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`,
+`DATABASE_URL`, and `ANTHROPIC_API_KEY` from the environment.
+
 ## Demo Scope
 
 The current version is a React + TypeScript dashboard on a Django REST backend, with realistic business flows:

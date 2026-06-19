@@ -1,12 +1,13 @@
+.git
+.gitignore
+.venv
 __pycache__/
 *.pyc
-.venv/
-.env
 db.sqlite3
-data/*.json
+data/
 staticfiles/
-.DS_Store
-
-# Frontend (Vite/React)
 frontend/node_modules/
 frontend/dist/
+docs/
+.DS_Store
+.env
