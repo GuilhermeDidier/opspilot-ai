@@ -10,6 +10,8 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-ready-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Render-2496ED?logo=docker&logoColor=white)
 
+**▶ Live demo: [opspilot-ai-ngvm.onrender.com](https://opspilot-ai-ngvm.onrender.com)** — running on Render's free tier, so the first request after idle may take ~30–50s to wake.
+
 ![OpsPilot AI command center](docs/screenshots/01-command-center.png)
 
 | Approval queue & AI decision packet | Workflow blueprint | Audit trail |
