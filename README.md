@@ -13,6 +13,18 @@ This project is designed for Upwork clients looking for:
 - Human-in-the-loop AI products
 - Django, Python, React, TypeScript, PostgreSQL, and API integration work
 
+## Architecture
+
+- **Backend** — Django REST Framework. App `automation` holds the `Workflow`,
+  `Approval`, and `AuditEvent` models and the API. SQLite by default,
+  PostgreSQL via `DATABASE_URL`.
+- **Frontend** — React + TypeScript (Vite), in `frontend/`. The premium
+  dashboard is built into `frontend/dist/` and served by Django in production.
+  Talks to the API through a typed client; falls back to embedded demo data
+  when the backend is unreachable.
+- **AI** — Claude (`claude-opus-4-8`) via the Anthropic SDK with structured
+  outputs, plus a deterministic fallback so the demo runs without a key.
+
 ## Run Locally
 
 Create the Python environment:
@@ -22,7 +34,16 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Run the Django app (it serves both the REST API and the dashboard):
+Build the frontend (outputs to `frontend/dist/`, which Django serves):
+
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+Run the Django app (it serves both the REST API and the built dashboard):
 
 ```bash
 .venv/bin/python manage.py migrate
@@ -30,14 +51,18 @@ Run the Django app (it serves both the REST API and the dashboard):
 .venv/bin/python manage.py runserver 127.0.0.1:8001
 ```
 
-Then visit:
+Then visit `http://127.0.0.1:8001/`. The API is under
+`http://127.0.0.1:8001/api/`.
 
-```text
-http://127.0.0.1:8001/
+### Frontend development
+
+For hot-reload while iterating on the UI, run the Django API on `:8001` and the
+Vite dev server separately — it proxies `/api` to Django:
+
+```bash
+cd frontend
+npm run dev   # http://127.0.0.1:5173
 ```
-
-The API is available under `http://127.0.0.1:8001/api/`. You can also open
-`index.html` directly for a fully client-side demo with no backend.
 
 Use PostgreSQL by setting `DATABASE_URL` before running migrations:
 
@@ -58,7 +83,7 @@ If no API key is configured, OpsPilot AI uses a deterministic fallback so the de
 
 ## Demo Scope
 
-The current version is a Django-backed dashboard with realistic business flows:
+The current version is a React + TypeScript dashboard on a Django REST backend, with realistic business flows:
 
 - Lead and sales automation
 - Support ticket triage
@@ -115,3 +140,4 @@ A production-style AI operations dashboard that scores leads, triages support ti
 - Store workflows, approvals, and logs in a database
 - Add PostgreSQL configuration through `DATABASE_URL`
 - Add Claude-powered classification and drafting
+- Rebuild the frontend as a typed React + TypeScript (Vite) single-page app
