@@ -2,6 +2,12 @@
 
 OpsPilot AI is a portfolio-grade business automation command center for AI-powered operations. It demonstrates the kind of full-stack product a client could hire a developer to build: workflow automation, AI decision support, approval queues, audit trails, and business dashboards.
 
+![OpsPilot AI command center](docs/screenshots/01-command-center.png)
+
+| Approval queue & AI decision packet | Workflow blueprint | Audit trail |
+| --- | --- | --- |
+| ![Approvals](docs/screenshots/02-approvals-decision.png) | ![Workflows](docs/screenshots/03-workflows.png) | ![Audit](docs/screenshots/04-audit-trail.png) |
+
 ## Positioning
 
 This project is designed for Upwork clients looking for:
