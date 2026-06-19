@@ -12,6 +12,8 @@
 
 **▶ Live demo: [opspilot-ai-ngvm.onrender.com](https://opspilot-ai-ngvm.onrender.com)** — running on Render's free tier, so the first request after idle may take ~30–50s to wake.
 
+**Try it live:** type your own lead, support ticket, or document into the dashboard and watch Claude generate a real decision packet — confidence, risk, evidence, and a ready-to-send draft — that you approve or reject before anything ships.
+
 ![OpsPilot AI command center](docs/screenshots/01-command-center.png)
 
 | Approval queue & AI decision packet | Workflow blueprint | Audit trail |
@@ -70,6 +72,7 @@ this look like a platform a business could actually adopt.
 
 ## Features
 
+- **Live AI console** — type your own scenario and Claude returns a real, structured decision packet in the approval queue
 - Three end-to-end automation workflows (sales, support, documents)
 - AI-generated recommendations via the **Claude API** with structured outputs
 - Deterministic fallback so the demo is fully usable **without an API key**
