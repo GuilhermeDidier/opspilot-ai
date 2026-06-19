@@ -5,6 +5,7 @@ import { ApprovalQueue } from "./components/ApprovalQueue";
 import { Blueprint } from "./components/Blueprint";
 import { DecisionPacket } from "./components/DecisionPacket";
 import { IntegrationHealth } from "./components/IntegrationHealth";
+import { LiveConsole } from "./components/LiveConsole";
 import { Sidebar } from "./components/Sidebar";
 import { StatusGrid } from "./components/StatusGrid";
 import { Toast } from "./components/Toast";
@@ -72,6 +73,15 @@ export default function App() {
           className={`command-layout${ops.view !== "command" ? " focus-view" : ""}`}
         >
           <div className="main-column">
+            {workflow && shows(["command", "workflows"]) && (
+              <LiveConsole
+                activeWorkflow={ops.activeWorkflow}
+                workflowTitle={workflow.title}
+                claudeEnabled={ops.claudeEnabled}
+                generating={ops.generating}
+                onGenerate={ops.generate}
+              />
+            )}
             {workflow && shows(["command", "workflows"]) && (
               <WorkflowBoard
                 workflow={workflow}

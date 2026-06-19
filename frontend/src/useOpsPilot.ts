@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { api } from "./api";
+import { api, type RecommendationInput } from "./api";
 import { seedApprovals, seedEvents, seedWorkflows } from "./seedData";
 import type { Approval, LogEntry, OpsState, View, WorkflowKey } from "./types";
 
@@ -39,6 +39,8 @@ export interface OpsPilot {
   selectedApprovalIndex: number;
   inspect: (index: number) => void;
   toast: string;
+  generating: boolean;
+  generate: (input: RecommendationInput) => Promise<void>;
   runSimulation: () => Promise<void>;
   optimize: () => Promise<void>;
   exportAudit: () => Promise<void>;
@@ -55,6 +57,7 @@ export function useOpsPilot(): OpsPilot {
   const [view, setView] = useState<View>("command");
   const [activeWorkflow, setActiveWorkflow] = useState<string>("revenue");
   const [selectedApprovalIndex, setSelectedApprovalIndex] = useState(0);
+  const [generating, setGenerating] = useState(false);
 
   const [toast, setToast] = useState("");
   const toastTimer = useRef<number | undefined>(undefined);
@@ -104,6 +107,69 @@ export function useOpsPilot(): OpsPilot {
   const inspect = useCallback((index: number) => {
     setSelectedApprovalIndex(index);
   }, []);
+
+  // The headline interaction: a visitor types their own scenario and the live
+  // Claude endpoint returns a real decision packet. Offline (no backend), a
+  // deterministic recommendation is built from the same input so the demo still
+  // responds to what the visitor wrote.
+  const generate = useCallback(
+    async (input: RecommendationInput) => {
+      if (generating) return;
+      setGenerating(true);
+      try {
+        if (online) {
+          await api.aiRecommend(activeWorkflow, input);
+          setSelectedApprovalIndex(0);
+          await refresh();
+          showToast("AI recommendation generated from your input.");
+          return;
+        }
+
+        setState((prev) => {
+          const workflow = prev.workflows[activeWorkflow];
+          const card = workflow.cards[workflow.cards.length - 1];
+          const lowered = `${input.company} ${input.request}`.toLowerCase();
+          const risk = ["urgent", "angry", "churn", "refund", "cancel", "asap"].some(
+            (word) => lowered.includes(word),
+          )
+            ? "High"
+            : "Medium";
+          const who = input.company.trim() || "the customer";
+          const approval: Approval = {
+            type: WORKFLOW_LABELS[activeWorkflow] ?? "Revenue",
+            title: `AI recommendation for ${workflow.title}`,
+            body: `Processed your scenario for ${who} and prepared a controlled automation action for review.`,
+            confidence: workflow.confidence,
+            risk,
+            timeSaved: activeWorkflow === "documents" ? 22 : 31,
+            nextAction: card.body,
+            evidence: [
+              "Input parsed against the selected workflow pattern",
+              "Suggested action requires human approval before external sync",
+              "Audit log will capture the reviewer decision",
+            ],
+            draft: `Hi ${who}, thanks for the context. Here is a controlled next step, queued for human approval before anything is sent externally.`,
+            provider: "demo",
+          };
+          const event: LogEntry = [
+            nowTime(),
+            "AI recommendation generated",
+            `${workflow.title} produced a new review item from your input.`,
+          ];
+          return {
+            ...prev,
+            approvals: [approval, ...prev.approvals],
+            events: [event, ...prev.events],
+          };
+        });
+        setSelectedApprovalIndex(0);
+        showToast("Recommendation generated from your input (offline demo).");
+      } finally {
+        setGenerating(false);
+      }
+    },
+    [generating, online, activeWorkflow, refresh, showToast],
+  );
 
   const runSimulation = useCallback(async () => {
     if (online) {
@@ -277,6 +343,8 @@ export function useOpsPilot(): OpsPilot {
     selectedApprovalIndex,
     inspect,
     toast,
+    generating,
+    generate,
     runSimulation,
     optimize,
     exportAudit,

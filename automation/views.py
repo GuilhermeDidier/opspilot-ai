@@ -95,7 +95,9 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         status_filter = self.request.query_params.get("status")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        return queryset
+        # Newest first so a freshly generated recommendation lands at the top of
+        # the queue and is the one shown in the Decision Packet.
+        return queryset.order_by("-created_at", "-id")
 
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
