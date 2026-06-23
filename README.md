@@ -2,6 +2,7 @@
 
 > A production-style AI operations dashboard that scores leads, triages support tickets, and extracts document data — then routes every AI-suggested action through **human approval** before it touches an external system, with a full audit trail.
 
+[![CI](https://github.com/GuilhermeDidier/opspilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeDidier/opspilot-ai/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django%20REST-4.2-092E20?logo=django&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-20232A?logo=react&logoColor=61DAFB)

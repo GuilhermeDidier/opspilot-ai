@@ -39,6 +39,17 @@ if RENDER_EXTERNAL_HOSTNAME:
 # Behind Render's TLS-terminating proxy.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# Production security hardening — applied only when DEBUG is off, so local
+# development over plain HTTP keeps working. TLS is terminated at Render's proxy
+# (see SECURE_PROXY_SSL_HEADER above), so the HTTPS redirect and HSTS are safe.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31_536_000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 
 # Application definition
 
