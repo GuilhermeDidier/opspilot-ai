@@ -43,10 +43,35 @@ export interface RecommendationInput {
   request: string;
 }
 
+/** An error carrying the HTTP status and the backend's `detail` message. */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly detail: string;
+
+  constructor(status: number, detail: string) {
+    super(detail);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+/** Build an ApiError, preferring the DRF `{ "detail": ... }` body when present. */
+async function toApiError(response: Response): Promise<ApiError> {
+  let detail = response.statusText || `HTTP ${response.status}`;
+  try {
+    const body = (await response.json()) as { detail?: unknown };
+    if (typeof body?.detail === "string") detail = body.detail;
+  } catch {
+    // Non-JSON error body — keep the status-text fallback.
+  }
+  return new ApiError(response.status, detail);
+}
+
 async function getJSON<T>(path: string): Promise<T> {
   const response = await fetch(path);
   if (!response.ok) {
-    throw new Error(`GET ${path} failed: ${response.status}`);
+    throw await toApiError(response);
   }
   return response.json() as Promise<T>;
 }
@@ -58,7 +83,7 @@ async function postJSON<T>(path: string, payload?: unknown): Promise<T> {
     body: payload === undefined ? undefined : JSON.stringify(payload),
   });
   if (!response.ok) {
-    throw new Error(`POST ${path} failed: ${response.status}`);
+    throw await toApiError(response);
   }
   return response.json() as Promise<T>;
 }

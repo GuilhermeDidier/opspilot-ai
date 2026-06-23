@@ -76,6 +76,7 @@ this look like a platform a business could actually adopt.
 - Three end-to-end automation workflows (sales, support, documents)
 - AI-generated recommendations via the **Claude API** with structured outputs
 - Deterministic fallback so the demo is fully usable **without an API key**
+- **Hardened public endpoint** — per-IP rate limits (burst + sustained) and a length cap on visitor input protect the shared API key from abuse and runaway token cost
 - Approve / reject / approve-all actions, each writing an audit event
 - Decision packet view: confidence, risk, evidence, next action, draft
 - Workflow blueprint and live pipeline visualization
@@ -197,6 +198,8 @@ All configuration is read from the environment, with dev-friendly defaults.
 | `DEBUG` | `True` | Set to `False` in production. |
 | `ALLOWED_HOSTS` | `127.0.0.1,localhost` | Comma-separated allowed hosts. |
 | `CSRF_TRUSTED_ORIGINS` | _(empty)_ | Comma-separated trusted origins for HTTPS. |
+| `AI_RECOMMEND_BURST_RATE` | `8/min` | Per-IP burst limit on the public AI endpoint. |
+| `AI_RECOMMEND_SUSTAINED_RATE` | `40/hour` | Per-IP sustained limit on the public AI endpoint. |
 
 Example, using PostgreSQL and live Claude:
 
