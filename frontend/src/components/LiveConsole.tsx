@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import type { RecommendationInput } from "../api";
+import { MAX_COMPANY_LEN, MAX_REQUEST_LEN } from "../limits";
 
 /** Per-workflow prompts so the visitor knows what kind of scenario to type. */
 const PLACEHOLDERS: Record<string, { label: string; company: string; request: string }> = {
@@ -74,6 +75,7 @@ export function LiveConsole({
         value={company}
         onChange={(event) => setCompany(event.target.value)}
         disabled={generating}
+        maxLength={MAX_COMPANY_LEN}
       />
       <textarea
         className="live-textarea"
@@ -85,7 +87,15 @@ export function LiveConsole({
         }}
         disabled={generating}
         rows={4}
+        maxLength={MAX_REQUEST_LEN}
       />
+      <div
+        className="live-counter"
+        data-near={request.length >= MAX_REQUEST_LEN * 0.9}
+        aria-live="polite"
+      >
+        {request.length.toLocaleString()} / {MAX_REQUEST_LEN.toLocaleString()}
+      </div>
 
       <div className="live-actions">
         <button

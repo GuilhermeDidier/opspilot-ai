@@ -5,9 +5,11 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
 from .ai import claude_enabled, generate_recommendation
+from .limits import PayloadTooLarge, clean_recommendation_payload
 from .models import Approval, AuditEvent, Workflow
 from .serializers import ApprovalSerializer, AuditEventSerializer, WorkflowSerializer
 from .seed import seed_demo_data
+from .throttling import AIRecommendBurstThrottle, AIRecommendSustainedThrottle
 
 WORKFLOW_TYPES = {
     "revenue": "Revenue",
@@ -60,10 +62,23 @@ class WorkflowViewSet(viewsets.ModelViewSet):
         )
         return Response(ApprovalSerializer(approval).data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=["post"], url_path="ai-recommend")
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="ai-recommend",
+        # Public, key-spending endpoint: cap requests per IP (see throttling.py).
+        throttle_classes=[AIRecommendBurstThrottle, AIRecommendSustainedThrottle],
+    )
     def ai_recommend(self, request, key=None):
         workflow = self.get_object()
-        recommendation = generate_recommendation(workflow, request.data)
+        # Keep only the known fields, bounded in length, before anything reaches
+        # the model prompt — visitor input is untrusted and metered by token.
+        try:
+            payload = clean_recommendation_payload(request.data)
+        except PayloadTooLarge as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        recommendation = generate_recommendation(workflow, payload)
         approval = Approval.objects.create(
             workflow=workflow,
             type=WORKFLOW_TYPES.get(workflow.key, "Revenue"),

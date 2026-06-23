@@ -3,6 +3,8 @@
 set -e
 
 python manage.py migrate --noinput
+# Backing table for the database cache (rate-limit counters). Idempotent.
+python manage.py createcachetable
 python manage.py collectstatic --noinput
 
 # Seed demo data only when the database is empty, so visitor actions in the

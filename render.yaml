@@ -24,3 +24,8 @@ services:
         sync: false
       - key: ANTHROPIC_MODEL
         value: claude-haiku-4-5-20251001
+      # Per-IP rate limits for the public "Try it live" endpoint.
+      - key: AI_RECOMMEND_BURST_RATE
+        value: 8/min
+      - key: AI_RECOMMEND_SUSTAINED_RATE
+        value: 40/hour

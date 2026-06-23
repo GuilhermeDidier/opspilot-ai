@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { api, type RecommendationInput } from "./api";
+import { api, ApiError, type RecommendationInput } from "./api";
 import { seedApprovals, seedEvents, seedWorkflows } from "./seedData";
 import type { Approval, LogEntry, OpsState, View, WorkflowKey } from "./types";
 
@@ -125,6 +125,7 @@ export function useOpsPilot(): OpsPilot {
           return;
         }
 
+        // Offline (no backend): build a deterministic packet from the same input.
         setState((prev) => {
           const workflow = prev.workflows[activeWorkflow];
           const card = workflow.cards[workflow.cards.length - 1];
@@ -164,6 +165,18 @@ export function useOpsPilot(): OpsPilot {
         });
         setSelectedApprovalIndex(0);
         showToast("Recommendation generated from your input (offline demo).");
+      } catch (error) {
+        // Surface backend guardrails to the visitor: a rate limit (429) or the
+        // input-length cap (400) both arrive as an ApiError carrying `detail`.
+        if (error instanceof ApiError) {
+          showToast(
+            error.status === 429
+              ? "You're going a bit fast — give it a few seconds and try again."
+              : error.detail,
+          );
+        } else {
+          showToast("Could not reach the AI service. Please try again.");
+        }
       } finally {
         setGenerating(false);
       }

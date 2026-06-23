@@ -178,4 +178,22 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
+    # Only the public AI endpoint opts into throttling (automation/throttling.py);
+    # these named rates back its IP-keyed burst + sustained limits.
+    "DEFAULT_THROTTLE_RATES": {
+        "ai_recommend_burst": os.getenv("AI_RECOMMEND_BURST_RATE", "8/min"),
+        "ai_recommend_sustained": os.getenv("AI_RECOMMEND_SUSTAINED_RATE", "40/hour"),
+    },
+}
+
+# Throttle counters must be shared across gunicorn workers, so the default cache
+# is the database — no extra service to provision on Render's free tier. The
+# cache table is created by `manage.py createcachetable` in bin/start.sh.
+CACHES = {
+    "default": {
+        "BACKEND": os.getenv(
+            "CACHE_BACKEND", "django.core.cache.backends.db.DatabaseCache"
+        ),
+        "LOCATION": os.getenv("CACHE_LOCATION", "opspilot_cache"),
+    }
 }
