@@ -4,11 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0E1417" />
     <meta
       name="description"
       content="OpsPilot AI — a human-in-the-loop business automation command center: AI scores leads, triages support tickets, and extracts documents, then routes every action through human approval with a full audit trail."
     />
     <title>OpsPilot AI — Business Automation Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Paint the deck before CSS loads so there is no white flash on a dark UI. -->
+    <style>
+      html {
+        background: #0e1417;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

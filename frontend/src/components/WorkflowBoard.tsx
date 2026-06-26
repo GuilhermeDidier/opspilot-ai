@@ -1,5 +1,14 @@
+import type { CSSProperties } from "react";
+
 import { tagClass } from "../tags";
 import type { Workflow, WorkflowKey } from "../types";
+
+// Translate the raw confidence reading into a posture a human can act on.
+function readConfidence(confidence: number): { label: string; state: string } {
+  if (confidence >= 90) return { label: "cleared to act", state: "ok" };
+  if (confidence >= 80) return { label: "review advised", state: "review" };
+  return { label: "hold for human", state: "hold" };
+}
 
 const SEGMENTS: { key: WorkflowKey; label: string }[] = [
   { key: "revenue", label: "Revenue" },
@@ -43,11 +52,21 @@ export function WorkflowBoard({ workflow, activeWorkflow, onSelect }: WorkflowBo
           <p>{workflow.description}</p>
         </div>
         <div className="confidence-block">
-          <span>AI confidence</span>
-          <strong>{workflow.confidence}%</strong>
-          <div className="bar" aria-hidden="true">
-            <span style={{ width: `${workflow.confidence}%` }} />
+          <span className="eyebrow">Autopilot confidence</span>
+          <div
+            className="gauge"
+            style={{ "--pct": workflow.confidence } as CSSProperties}
+            role="img"
+            aria-label={`AI confidence ${workflow.confidence} percent`}
+          >
+            <strong>
+              {workflow.confidence}
+              <i>%</i>
+            </strong>
           </div>
+          <span className="gauge-state" data-state={readConfidence(workflow.confidence).state}>
+            {readConfidence(workflow.confidence).label}
+          </span>
         </div>
       </div>
 
