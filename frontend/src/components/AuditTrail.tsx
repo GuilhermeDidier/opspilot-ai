@@ -12,7 +12,7 @@ export function AuditTrail({ events }: { events: LogEntry[] }) {
       <ol className="event-log">
         {events.slice(0, 6).map(([time, title, body], index) => (
           <li key={`${time}-${title}-${index}`}>
-            <span>{time}</span>
+            <time>{time}</time>
             <div>
               <strong>{title}</strong>
               <p>{body}</p>

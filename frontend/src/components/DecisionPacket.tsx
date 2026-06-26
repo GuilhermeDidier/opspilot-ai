@@ -33,7 +33,9 @@ function DecisionDetail({ approval }: { approval: Approval }) {
           <span>Confidence</span>
           <strong>{approval.confidence ?? 82}%</strong>
         </div>
-        <div className="rationale-stat">
+        <div
+          className={`rationale-stat${approval.risk ? ` risk-${approval.risk.toLowerCase()}` : ""}`}
+        >
           <span>Risk</span>
           <strong>{approval.risk ?? "Medium"}</strong>
         </div>
