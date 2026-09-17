@@ -18,7 +18,12 @@ WORKFLOW_TYPES = {
 }
 
 
-class WorkflowViewSet(viewsets.ModelViewSet):
+# The dashboard is a public demo with no accounts, so the REST collections are
+# read-only: the only writes it accepts are the reviewed actions below
+# (simulate, optimize, ai-recommend, approve, reject), which is the product's
+# whole point. A plain ModelViewSet would let any visitor edit or delete
+# another visitor's workflows and approvals.
+class WorkflowViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Workflow.objects.all()
     serializer_class = WorkflowSerializer
     lookup_field = "key"
@@ -101,7 +106,7 @@ class WorkflowViewSet(viewsets.ModelViewSet):
         return Response(ApprovalSerializer(approval).data, status=status.HTTP_201_CREATED)
 
 
-class ApprovalViewSet(viewsets.ModelViewSet):
+class ApprovalViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Approval.objects.select_related("workflow").all()
     serializer_class = ApprovalSerializer
 
@@ -173,5 +178,12 @@ def export_audit(_request):
 
 @api_view(["POST"])
 def seed(_request):
+    """Fill an empty database. The frontend calls this on a cold start.
+
+    Guarded, because seeding wipes the tables first: without the guard any
+    visitor could erase the live demo with one request.
+    """
+    if Workflow.objects.exists():
+        return Response({"status": "skipped", "detail": "Demo data already present."})
     seed_demo_data()
     return Response({"status": "seeded"})

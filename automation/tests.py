@@ -19,6 +19,44 @@ class AutomationApiTests(TestCase):
         self.assertEqual(len(response.json()), 3)
         self.assertEqual(response.json()[0]["key"], "revenue")
 
+    def test_rest_collections_reject_writes(self):
+        """A visitor cannot edit or delete the demo through the REST API."""
+        workflow_writes = [
+            self.client.post("/api/workflows/", {"key": "x"}, format="json"),
+            self.client.patch("/api/workflows/revenue/", {"title": "hacked"}, format="json"),
+            self.client.delete("/api/workflows/revenue/"),
+        ]
+        approval = Approval.objects.first()
+        approval_writes = [
+            self.client.patch(f"/api/approvals/{approval.id}/", {"title": "hacked"}, format="json"),
+            self.client.delete(f"/api/approvals/{approval.id}/"),
+        ]
+
+        for response in workflow_writes + approval_writes:
+            self.assertEqual(response.status_code, 405)
+        self.assertEqual(Workflow.objects.count(), 3)
+        self.assertEqual(Workflow.objects.get(key="revenue").title, "Lead & Sales Automation")
+        self.assertTrue(Approval.objects.filter(id=approval.id).exists())
+
+    def test_seed_endpoint_does_not_wipe_an_existing_demo(self):
+        """Seeding deletes every row first, so it only runs on an empty database."""
+        self.client.post("/api/workflows/revenue/simulate/")
+        before = list(Approval.objects.values_list("id", flat=True))
+
+        response = self.client.post("/api/seed/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "skipped")
+        self.assertEqual(list(Approval.objects.values_list("id", flat=True)), before)
+
+    def test_seed_endpoint_fills_an_empty_database(self):
+        Workflow.objects.all().delete()
+
+        response = self.client.post("/api/seed/")
+
+        self.assertEqual(response.json()["status"], "seeded")
+        self.assertEqual(Workflow.objects.count(), 3)
+
     def test_simulate_creates_pending_approval_and_audit_event(self):
         response = self.client.post("/api/workflows/revenue/simulate/")
 
