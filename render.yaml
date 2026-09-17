@@ -1,9 +1,7 @@
-# Render blueprint: one Docker web service (Django API + built React SPA) plus
-# a managed PostgreSQL database. Set ANTHROPIC_API_KEY in the dashboard.
-databases:
-  - name: opspilot-db
-    plan: free
-
+# Render blueprint: one Docker web service (Django API + built React SPA).
+# The demo runs on SQLite inside the container: Render deletes free Postgres
+# databases after 30 days, which took the site down once. Every boot starts
+# from freshly seeded demo data. Set ANTHROPIC_API_KEY in the dashboard.
 services:
   - type: web
     name: opspilot-ai
@@ -16,10 +14,9 @@ services:
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: opspilot-db
-          property: connectionString
+      # Overrides the DATABASE_URL the deleted database left on the service.
+      - key: DATABASE_ENGINE
+        value: sqlite
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ANTHROPIC_MODEL

@@ -103,7 +103,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 def database_config():
     database_url = os.getenv("DATABASE_URL")
-    if not database_url:
+    # DATABASE_ENGINE=sqlite wins over a DATABASE_URL still set on the host:
+    # the live demo runs on SQLite because Render deletes free Postgres
+    # databases after 30 days, and a dead URL keeps the app from booting.
+    if os.getenv("DATABASE_ENGINE", "").lower() == "sqlite" or not database_url:
         return {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",

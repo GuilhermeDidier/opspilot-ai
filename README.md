@@ -195,6 +195,7 @@ All configuration is read from the environment, with dev-friendly defaults.
 | `ANTHROPIC_API_KEY` | _(unset)_ | Enables live Claude recommendations. Without it, the deterministic fallback is used. |
 | `ANTHROPIC_MODEL` | `claude-opus-4-8` | Claude model used for recommendations. |
 | `DATABASE_URL` | _(SQLite)_ | `postgres://…` connection string for PostgreSQL. |
+| `DATABASE_ENGINE` | _(unset)_ | Set to `sqlite` to use SQLite even when `DATABASE_URL` is set. |
 | `SECRET_KEY` | dev key | Django secret key (set a real one in production). |
 | `DEBUG` | `True` | Set to `False` in production. |
 | `ALLOWED_HOSTS` | `127.0.0.1,localhost` | Comma-separated allowed hosts. |
@@ -241,8 +242,10 @@ The repo ships a Render blueprint (`render.yaml`) and a multi-stage `Dockerfile`
 that builds the React bundle and serves it from Django with gunicorn + WhiteNoise.
 
 1. Push to GitHub and create a new **Blueprint** on Render pointing at the repo.
-2. Render provisions the web service and a managed PostgreSQL database, wiring
-   `DATABASE_URL` and a generated `SECRET_KEY` automatically.
+2. Render provisions the web service with a generated `SECRET_KEY`. The demo
+   runs on SQLite inside the container (Render deletes free Postgres databases
+   after 30 days), so every boot starts from freshly seeded data. For
+   persistent data, attach a paid Postgres and drop `DATABASE_ENGINE`.
 3. Add `ANTHROPIC_API_KEY` in the service environment to enable live Claude
    recommendations (the deterministic fallback runs without it).
 

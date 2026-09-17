@@ -12,6 +12,13 @@ class DatabaseSettingsTests(unittest.TestCase):
 
         self.assertEqual(config["ENGINE"], "django.db.backends.sqlite3")
 
+    def test_database_engine_sqlite_overrides_database_url(self):
+        env = {"DATABASE_URL": "postgres://u:p@gone-host:5432/db", "DATABASE_ENGINE": "sqlite"}
+        with patch.dict(os.environ, env, clear=True):
+            config = database_config()
+
+        self.assertEqual(config["ENGINE"], "django.db.backends.sqlite3")
+
     def test_parses_postgres_database_url(self):
         url = "postgres://opspilot:secret@localhost:5432/opspilot_ai?sslmode=require"
         with patch.dict(os.environ, {"DATABASE_URL": url}, clear=True):
