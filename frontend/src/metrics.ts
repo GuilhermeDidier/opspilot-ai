@@ -1,4 +1,4 @@
-import type { Approval } from "./types";
+import type { OpsState } from "./types";
 
 export interface Metrics {
   pipelineValue: number;
@@ -8,15 +8,21 @@ export interface Metrics {
 }
 
 const HOURLY_OPS_COST = 85;
+// Sample figures for the demo client, labelled as such in the UI.
+const BASELINE_HOURS_SAVED = 126;
+const BASELINE_PIPELINE = 184200;
+const PIPELINE_PER_REVENUE_ACTION = 7200;
 
 /**
- * Business headline numbers for the demo client. The baselines are sample
- * figures (labelled as such in the UI); the live approval queue moves them.
+ * Business headline numbers for the demo client: the sample baselines plus
+ * what a person has approved. Pending items count only as pending.
  */
-export function deriveMetrics(approvals: Approval[]): Metrics {
-  const hoursSaved = 126 + approvals.reduce((total, a) => total + (a.timeSaved ?? 0), 0);
+export function deriveMetrics({ approvals, approved }: Pick<OpsState, "approvals" | "approved">): Metrics {
+  const minutesSaved = approved.reduce((total, a) => total + (a.timeSaved ?? 0), 0);
+  const hoursSaved = BASELINE_HOURS_SAVED + Math.round(minutesSaved / 60);
   const pipelineValue =
-    184200 + approvals.filter((a) => a.type === "Revenue").length * 7200;
+    BASELINE_PIPELINE +
+    approved.filter((a) => a.type === "Revenue").length * PIPELINE_PER_REVENUE_ACTION;
   return {
     hoursSaved,
     pipelineValue,

@@ -15,6 +15,7 @@ function seedState(): OpsState {
   return {
     workflows: structuredClone(seedWorkflows),
     approvals: structuredClone(seedApprovals),
+    approved: [],
     events: structuredClone(seedEvents),
   };
 }
@@ -299,6 +300,7 @@ export function useOpsPilot(): OpsPilot {
       setState((prev) => ({
         ...prev,
         approvals: prev.approvals.filter((_, i) => i !== index),
+        approved: action === "approved" ? [item, ...prev.approved] : prev.approved,
         events: [
           [
             nowTime(),
@@ -330,6 +332,7 @@ export function useOpsPilot(): OpsPilot {
       return {
         ...prev,
         approvals: prev.approvals.slice(approvedCount),
+        approved: [...prev.approvals.slice(0, approvedCount), ...prev.approved],
         events: [
           [
             nowTime(),

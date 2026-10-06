@@ -38,6 +38,9 @@ export type LogEntry = [string, string, string];
 
 export interface OpsState {
   workflows: Record<string, Workflow>;
+  /** Waiting for a person. */
   approvals: Approval[];
+  /** Approved by a person; drives the headline numbers. */
+  approved: Approval[];
   events: LogEntry[];
 }

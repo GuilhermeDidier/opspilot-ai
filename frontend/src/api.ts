@@ -135,17 +135,19 @@ export const api = {
 
   /** Loads the full dashboard state, seeding the backend on first run. */
   async fetchState(): Promise<OpsState> {
-    let [workflows, approvals, events] = await Promise.all([
+    let [workflows, approvals, approved, events] = await Promise.all([
       getJSON<WorkflowDTO[]>("/api/workflows/"),
       getJSON<ApprovalDTO[]>("/api/approvals/?status=pending"),
+      getJSON<ApprovalDTO[]>("/api/approvals/?status=approved"),
       getJSON<AuditEventDTO[]>("/api/audit-events/"),
     ]);
 
     if (workflows.length === 0) {
       await postJSON("/api/seed/");
-      [workflows, approvals, events] = await Promise.all([
+      [workflows, approvals, approved, events] = await Promise.all([
         getJSON<WorkflowDTO[]>("/api/workflows/"),
         getJSON<ApprovalDTO[]>("/api/approvals/?status=pending"),
+        getJSON<ApprovalDTO[]>("/api/approvals/?status=approved"),
         getJSON<AuditEventDTO[]>("/api/audit-events/"),
       ]);
     }
@@ -155,6 +157,7 @@ export const api = {
         workflows.map((dto) => [dto.key, normalizeWorkflow(dto)]),
       ),
       approvals: approvals.map(normalizeApproval),
+      approved: approved.map(normalizeApproval),
       events: events.map(normalizeEvent),
     };
   },

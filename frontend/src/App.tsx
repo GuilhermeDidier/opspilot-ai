@@ -43,7 +43,7 @@ export default function App() {
 
   const workflow =
     ops.state.workflows[ops.activeWorkflow] ?? Object.values(ops.state.workflows)[0];
-  const metrics = deriveMetrics(ops.state.approvals);
+  const metrics = deriveMetrics(ops.state);
   const selected =
     ops.state.approvals[
       Math.min(ops.selectedApprovalIndex, Math.max(ops.state.approvals.length - 1, 0))
