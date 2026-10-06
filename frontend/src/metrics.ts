@@ -9,7 +9,10 @@ export interface Metrics {
 
 const HOURLY_OPS_COST = 85;
 
-/** Business headline numbers, derived from the live approval queue. */
+/**
+ * Business headline numbers for the demo client. The baselines are sample
+ * figures (labelled as such in the UI); the live approval queue moves them.
+ */
 export function deriveMetrics(approvals: Approval[]): Metrics {
   const hoursSaved = 126 + approvals.reduce((total, a) => total + (a.timeSaved ?? 0), 0);
   const pipelineValue =

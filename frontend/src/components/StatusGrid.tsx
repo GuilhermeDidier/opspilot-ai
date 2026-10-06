@@ -6,7 +6,7 @@ export function StatusGrid({ metrics }: { metrics: Metrics }) {
       <article className="metric-panel">
         <span>Pipeline Value</span>
         <strong>{formatCurrency(metrics.pipelineValue)}</strong>
-        <small>+18.4% this week</small>
+        <small>Sample client pipeline</small>
       </article>
       <article className="metric-panel">
         <span>Hours Saved</span>

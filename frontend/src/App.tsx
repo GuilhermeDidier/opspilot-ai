@@ -16,7 +16,7 @@ import type { View } from "./types";
 import { useOpsPilot } from "./useOpsPilot";
 
 const VIEW_CONFIG: Record<View, { eyebrow: string; title: string }> = {
-  command: { eyebrow: "Production Demo", title: "Business Automation Command Center" },
+  command: { eyebrow: "Demo workspace · sample data", title: "Business Automation Command Center" },
   approvals: { eyebrow: "Human Review", title: "Approval Queue" },
   workflows: { eyebrow: "Workflow Intelligence", title: "Workflow Builder" },
   audit: { eyebrow: "Audit Trail", title: "Agent Activity Log" },
