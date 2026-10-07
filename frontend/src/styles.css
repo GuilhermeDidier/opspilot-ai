@@ -861,6 +861,13 @@ h3 {
   background: var(--ai);
 }
 
+.evidence-empty {
+  margin: 14px 0 0;
+  color: var(--hold);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .draft-box {
   margin-top: 14px;
   border: 1px solid var(--line);

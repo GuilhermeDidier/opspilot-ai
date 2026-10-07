@@ -16,12 +16,6 @@ export function DecisionPacket({ approval }: { approval: Approval | undefined })
 }
 
 function DecisionDetail({ approval }: { approval: Approval }) {
-  const evidence = approval.evidence?.length
-    ? approval.evidence
-    : [
-        "Recommendation generated from workflow context",
-        "Action is waiting for human approval",
-      ];
 
   return (
     <div className="decision-detail">
@@ -31,7 +25,7 @@ function DecisionDetail({ approval }: { approval: Approval }) {
       <div className="rationale-grid">
         <div className="rationale-stat">
           <span>Confidence</span>
-          <strong>{approval.confidence ?? 82}%</strong>
+          <strong>{approval.confidence != null ? `${approval.confidence}%` : "Not scored"}</strong>
         </div>
         <div
           className={`rationale-stat${approval.risk ? ` risk-${approval.risk.toLowerCase()}` : ""}`}
@@ -40,7 +34,7 @@ function DecisionDetail({ approval }: { approval: Approval }) {
           <strong>{approval.risk ?? "Medium"}</strong>
         </div>
         <div className="rationale-stat">
-          <span>Time saved</span>
+          <span>Time saved (est.)</span>
           <strong>{approval.timeSaved ?? 20} min</strong>
         </div>
         <div className="rationale-stat">
@@ -48,11 +42,15 @@ function DecisionDetail({ approval }: { approval: Approval }) {
           <strong>Human</strong>
         </div>
       </div>
-      <ul className="evidence-list">
-        {evidence.map((entry) => (
-          <li key={entry}>{entry}</li>
-        ))}
-      </ul>
+      {approval.evidence?.length ? (
+        <ul className="evidence-list">
+          {approval.evidence.map((entry) => (
+            <li key={entry}>{approval.confidence == null ? `\u201c${entry}\u201d` : entry}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="evidence-empty">No phrase in the input backs this up. Review it before approving.</p>
+      )}
       {approval.draft ? (
         <div className="draft-box">
           <span>{approval.provider ?? "system"} draft</span>
@@ -69,8 +67,8 @@ function EmptyDecision() {
       <span>Select an approval</span>
       <strong>Review the AI reasoning before action</strong>
       <p>
-        Every automation recommendation includes confidence, evidence, risk level, and the
-        exact next step before a human approves it.
+        Every automation recommendation includes its risk level, the evidence behind it, and
+        the exact next step before a human approves it.
       </p>
     </div>
   );

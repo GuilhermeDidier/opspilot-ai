@@ -57,12 +57,12 @@ export function ApprovalQueue({
             </div>
             <strong>{item.title}</strong>
             <p>{item.body}</p>
-            {item.confidence != null ? (
+            {item.confidence != null || item.risk ? (
               <div className="strip-meta">
-                <span>{item.confidence}%</span>
+                {item.confidence != null ? <span>{item.confidence}%</span> : null}
                 {item.risk ? (
                   <>
-                    <i>·</i>
+                    {item.confidence != null ? <i>·</i> : null}
                     <span>{item.risk} risk</span>
                   </>
                 ) : null}

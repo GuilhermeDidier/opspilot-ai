@@ -64,8 +64,8 @@ export function LiveConsole({
       </div>
 
       <p className="live-hint">
-        Type your own input below. The AI returns a decision packet — confidence, risk,
-        evidence and a draft reply — that a human approves before anything ships.
+        Type your own input below. The AI returns a decision packet — risk, evidence quoted
+        from your input and a draft reply — that a human approves before anything ships.
       </p>
 
       <input

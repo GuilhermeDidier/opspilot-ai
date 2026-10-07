@@ -24,7 +24,8 @@ export interface Approval {
   type: string;
   title: string;
   body: string;
-  confidence?: number;
+  /** null for an AI recommendation: the model does not score itself. */
+  confidence?: number | null;
   risk?: string;
   timeSaved?: number;
   nextAction?: string;

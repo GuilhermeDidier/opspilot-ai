@@ -13,7 +13,7 @@
 
 **▶ Live demo: [opspilot-ai-ngvm.onrender.com](https://opspilot-ai-ngvm.onrender.com)** — running on Render's free tier, so the first request after idle may take ~30–50s to wake.
 
-**Try it live:** type your own lead, support ticket, or document into the dashboard and watch Claude generate a real decision packet — confidence, risk, evidence, and a ready-to-send draft — that you approve or reject before anything ships.
+**Try it live:** type your own lead, support ticket, or document into the dashboard and watch Claude generate a real decision packet — risk, evidence quoted from your input, and a ready-to-send draft — that you approve or reject before anything ships.
 
 ![OpsPilot AI command center](docs/screenshots/01-command-center.png)
 
@@ -62,8 +62,9 @@ reality:
 
 - **Human-in-the-loop** — every AI action is a suggestion with an explicit
   approve / reject gate. Nothing is sent or synced without a reviewer.
-- **Decision packets** — each recommendation ships with a confidence score, risk
-  level, supporting evidence, the exact next action, estimated time saved, and a
+- **Decision packets** — each recommendation ships with a risk level, evidence
+  quoted word for word from the input (anything the model cites that the input does
+  not contain is dropped), the exact next action, estimated time saved, and a
   ready-to-send draft.
 - **Audit trail** — every simulation, recommendation, and human decision is logged
   as an immutable event.
@@ -79,7 +80,7 @@ this look like a platform a business could actually adopt.
 - Deterministic fallback so the demo is fully usable **without an API key**
 - **Hardened public endpoint** — per-IP rate limits (burst + sustained) and a length cap on visitor input protect the shared API key from abuse and runaway token cost
 - Approve / reject / approve-all actions, each writing an audit event
-- Decision packet view: confidence, risk, evidence, next action, draft
+- Decision packet view: risk, quoted evidence, next action, draft (the model never scores its own confidence)
 - Workflow blueprint and live pipeline visualization
 - Business metrics: pipeline value, hours saved, cost avoided
 - Typed React + TypeScript SPA with an **offline demo fallback**

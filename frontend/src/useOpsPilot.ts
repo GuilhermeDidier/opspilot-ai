@@ -131,25 +131,21 @@ export function useOpsPilot(): OpsPilot {
           const workflow = prev.workflows[activeWorkflow];
           const card = workflow.cards[workflow.cards.length - 1];
           const lowered = `${input.company} ${input.request}`.toLowerCase();
-          const risk = ["urgent", "angry", "churn", "refund", "cancel", "asap"].some(
+          const matched = ["urgent", "angry", "churn", "refund", "cancel", "asap"].filter(
             (word) => lowered.includes(word),
-          )
-            ? "High"
-            : "Medium";
+          );
+          const risk = matched.length ? "High" : "Medium";
           const who = input.company.trim() || "the customer";
           const approval: Approval = {
             type: WORKFLOW_LABELS[activeWorkflow] ?? "Revenue",
             title: `AI recommendation for ${workflow.title}`,
             body: `Processed your scenario for ${who} and prepared a controlled automation action for review.`,
-            confidence: workflow.confidence,
+            // Like the backend: no self-scored confidence, evidence only quoted from the input.
+            confidence: null,
             risk,
             timeSaved: activeWorkflow === "documents" ? 22 : 31,
             nextAction: card.body,
-            evidence: [
-              "Input parsed against the selected workflow pattern",
-              "Suggested action requires human approval before external sync",
-              "Audit log will capture the reviewer decision",
-            ],
+            evidence: matched,
             draft: `Hi ${who}, thanks for the context. Here is a controlled next step, queued for human approval before anything is sent externally.`,
             provider: "demo",
           };

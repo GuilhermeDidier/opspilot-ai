@@ -15,7 +15,7 @@ interface ApprovalDTO {
   type: string;
   title: string;
   body: string;
-  confidence: number;
+  confidence: number | null;
   risk: string;
   time_saved: number;
   next_action: string;

@@ -9,16 +9,46 @@ def claude_enabled():
     return bool(os.getenv("ANTHROPIC_API_KEY"))
 
 
+# Minutes a reviewer would spend doing the step by hand. A fixed per-workflow
+# estimate: the model has no way to know this, so it is never asked.
+TIME_SAVED_ESTIMATE = {"revenue": 34, "support": 26}
+DEFAULT_TIME_SAVED = 22
+
+RISK_WORDS = ["urgent", "angry", "churn", "switch", "refund"]
+BUYING_WORDS = ["budget", "demo", "pricing", "enterprise"]
+
+
+def _normalize(text):
+    return " ".join(str(text).split()).lower()
+
+
+def grounded_evidence(evidence, payload):
+    """Keep only the evidence the model copied verbatim from the input.
+
+    A quote either appears in what the user typed or it is dropped, so the
+    packet never shows a fact the input does not contain.
+    """
+    source = _normalize(" ".join(str(value) for value in payload.values()))
+    kept = []
+    for quote in evidence:
+        quote = str(quote).strip().strip('"\u201c\u201d').strip()
+        if len(quote) >= 3 and _normalize(quote) in source and quote not in kept:
+            kept.append(quote)
+    return kept
+
+
 def fallback_recommendation(workflow, payload):
     source_text = " ".join(str(value) for value in payload.values()) if payload else workflow.description
     lowered = source_text.lower()
 
-    risk = "High" if any(word in lowered for word in ["urgent", "angry", "churn", "switch", "refund"]) else "Medium"
-    if workflow.key == "revenue" and any(word in lowered for word in ["budget", "demo", "pricing", "enterprise"]):
-        risk = "Low"
+    matched = [word for word in RISK_WORDS if word in lowered]
+    risk = "High" if matched else "Medium"
+    if workflow.key == "revenue":
+        buying = [word for word in BUYING_WORDS if word in lowered]
+        if buying:
+            risk = "Low"
+            matched += buying
 
-    confidence = min(workflow.confidence, 90 if risk == "High" else 88)
-    time_saved = 34 if workflow.key == "revenue" else 26 if workflow.key == "support" else 22
     next_action = {
         "revenue": "Draft a personalized discovery reply and create a same-day follow-up task.",
         "support": "Escalate to the account owner with a suggested response and customer context.",
@@ -28,15 +58,11 @@ def fallback_recommendation(workflow, payload):
     return {
         "title": f"AI recommendation for {workflow.title}",
         "body": f"{workflow.title} processed the request and prepared a controlled automation action.",
-        "confidence": confidence,
+        "confidence": None,
         "risk": risk,
-        "time_saved": time_saved,
+        "time_saved": TIME_SAVED_ESTIMATE.get(workflow.key, DEFAULT_TIME_SAVED),
         "next_action": next_action,
-        "evidence": [
-            "Input matched the selected workflow pattern",
-            "Action requires human approval before external sync",
-            "Audit trail will capture the reviewer decision",
-        ],
+        "evidence": grounded_evidence(matched, payload or {}),
         "draft": build_fallback_draft(workflow, payload),
         "provider": "fallback",
     }
@@ -65,9 +91,7 @@ RECOMMENDATION_SCHEMA = {
     "properties": {
         "title": {"type": "string"},
         "body": {"type": "string"},
-        "confidence": {"type": "integer"},
         "risk": {"type": "string", "enum": ["Low", "Medium", "High"]},
-        "time_saved": {"type": "integer"},
         "next_action": {"type": "string"},
         "evidence": {"type": "array", "items": {"type": "string"}},
         "draft": {"type": "string"},
@@ -75,9 +99,7 @@ RECOMMENDATION_SCHEMA = {
     "required": [
         "title",
         "body",
-        "confidence",
         "risk",
-        "time_saved",
         "next_action",
         "evidence",
         "draft",
@@ -89,7 +111,11 @@ SYSTEM_PROMPT = (
     "You generate concise business automation recommendations for a human-in-the-loop "
     "operations dashboard. Every action you suggest is reviewed and approved by a human "
     "before it touches an external system. Be specific, ground the recommendation in the "
-    "provided workflow context, and keep the draft reply short and professional."
+    "provided workflow context, and keep the draft reply short and professional. "
+    "Use only facts present in the input: do not invent the customer's history, numbers, "
+    "plan, deadlines or commitments, and say what is unknown instead of guessing. "
+    "evidence: up to 3 short phrases copied word for word from the input that justify "
+    "the risk and the next action; quotes that do not appear in the input are discarded."
 )
 
 
@@ -124,9 +150,11 @@ def generate_recommendation(workflow, payload):
         data["provider"] = "fallback"
         return data
 
-    data["confidence"] = max(0, min(int(data.get("confidence", workflow.confidence)), 100))
-    data["time_saved"] = max(1, int(data.get("time_saved", 20)))
+    # The model is never asked to score itself: a self-reported confidence is
+    # not a measurement, so a live recommendation carries none.
+    data["confidence"] = None
+    data["time_saved"] = TIME_SAVED_ESTIMATE.get(workflow.key, DEFAULT_TIME_SAVED)
     data["risk"] = data.get("risk") if data.get("risk") in {"Low", "Medium", "High"} else "Medium"
-    data["evidence"] = data.get("evidence") or []
+    data["evidence"] = grounded_evidence(data.get("evidence") or [], payload)
     data["provider"] = "claude"
     return data

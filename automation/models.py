@@ -39,7 +39,8 @@ class Approval(models.Model):
     type = models.CharField(max_length=60)
     title = models.CharField(max_length=160)
     body = models.TextField()
-    confidence = models.PositiveSmallIntegerField(default=82)
+    # Null for AI recommendations: the model's opinion of itself is not a score.
+    confidence = models.PositiveSmallIntegerField(null=True, blank=True, default=82)
     risk = models.CharField(max_length=40, default="Medium")
     time_saved = models.PositiveIntegerField(default=20)
     next_action = models.TextField(blank=True)
